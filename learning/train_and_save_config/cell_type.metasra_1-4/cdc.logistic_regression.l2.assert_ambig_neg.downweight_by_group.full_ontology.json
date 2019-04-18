@@ -1,0 +1,8 @@
+{
+    "experiment_name": "cdc.logistic_regression.l2",
+    "features": "kallisto_gene_log_cpm",
+    "algo_config_file": "cdc.logistic_regression.l2.assert_ambig_neg.downweight_by_group.json",
+    "collapse_ontology": false,
+    "dim_reduct_config_file": null
+}
+
