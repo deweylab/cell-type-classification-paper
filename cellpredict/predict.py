@@ -94,11 +94,11 @@ def predict(queries, algo, thresh, by_term_name=False):
 
     label_order = label_to_confs[0].keys()
     da = [
-        (int(label_to_conf[k] > thresh) for k in label_order)
+        [int(label_to_conf[k] > thresh) for k in label_order]
         for label_to_conf in label_to_confs
     ]
     da_scores = [
-        (label_to_conf[k] for k in label_order)
+        [label_to_conf[k] for k in label_order]
         for label_to_conf in label_to_confs
     ]
     if by_term_name:
