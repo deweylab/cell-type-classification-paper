@@ -33,3 +33,5 @@ To run the classifier on a feature vector:
 This command will create two files: ``predictions.tsv`` stores the binarized predictions and ``prediction_scores.tsv`` stores the raw probability scores for each cell type.
 
 
+=======
+# cell-type-classification-paper

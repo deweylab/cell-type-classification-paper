@@ -1,0 +1,181 @@
+{
+	"definitions": {
+		"alternate_assay": "An assay from which you cannot derive an mRNA expression profile",
+		"single_cell": "Each sample consists of a single cell",
+		"rna_size_selection": "Selected RNA molecules according to a specified length threshold",
+		"less_200_bases": "Selected RNA molecules according to a specified length threshold. Only RNA's less than 200 bases were selected",
+		"less_100_bases": "Selected RNA molecules according to a specified length threshold. Only RNA's less than 100 bases were selected",
+		"greater_200_bases": "Selected RNA molecules according to a specified length threshold. Only RNA's greater than 200 bases were selected",
+		"in_vitro_differentiated_cells": "Treatment of cells in vitro induced a change of cell state",
+		"stimulation": "Treatment of cells in vitro induced cells into a 'stimulated' cell state",
+		"transduced": "Cells were infected with an adenovirus for the purpose of expressing some gene(s)",
+		"transduced_control": "Cells were infected with an adenovirus for the purpose of expressing some gene(s); however, these transduced cells are the control cells in an experiment and the expressed gene is assumed to not greatly affect the cell's state",
+		"transfected": "Foreign genetic material was artificially injected into the genome of a cell in vitro",
+		"transfected_control": "A transfection protocol in which the introduced genetic material is not thought to greatly affect the cell's state",
+		"infected": "Cells are infected with a virus or bacteria, either naturally or in vitro",
+		"sirna_treatment": "Cells were treated with siRNA",
+		"sirna_treatment_control": "Cells were treated with siRNA, however, these treated cells are the control cells in an experiment and the siRNA is assumed to not greatly affect the cell's function",
+		"shrna_treatment": "Cells were treated with shRNA", 
+                "shrna_treatment_control": "Cells were treated with shRNA, however, these treated cells are the control cells in an experiment and the shRNA is assumed to not greatly affect the cell's function",
+		"cell_line": "The samples have been passaged multiple times",
+		"low_passage": "The samples are primary cells that have undergone passaging less than 5 times",
+		"total_rna": "All RNA was used to prepare the sequencing library",
+		"poly_a_rna": "Poly-A RNA was selected from total RNA when preparing the library",
+		"rrna_depletion": "rRNA was depleted from collected RNA when preparing the library",
+		"cultured": "Cells were grown in a culture prior to RNA extraction",
+		"uncultured": "RNA was extracted directly from isolated primary cells",
+		"cancer_cells": "Cells are 'cancerous' and are in a different state than they would otherwise be when healthy",
+		"cancer_associated_cells": "Cells that are themselves not cancerous, but are associated with a tumor and are active in the cancer disease process",
+		"tissue": "RNA was extracted from cells in their original 3D structure",
+		"experimental_chemical_treatment": "Cells were treated in vitro with a chemical for a purpose that is alternative to proliferating the cells.",
+		"induced_pluripotent_stem_cells": "TODO",
+		"diseased_cells": "Cells that are active in a disease process, whose cellular state would be affected by this process and alter it from its state in a healthy environment",
+		"gene_knockout": "A gene was somehow artificially knocked out in vitro",
+		"gene_enrichment": "A gene was somehow artificially overexpressed in vitro",
+		"mouse_xenograft": "Human cells grown in a mouse before extraction and sequencing",
+		"ultra_violet_radiation_treatment": "cells were treated with UV radiation",
+		"experimental_treatment": "Cells were treated experimentally ex vivo in order to induce a purposeful change in cell state",
+		"in_vitro_fertilized_embryo": "Embryonic cells extracted from an in vitro fertilized embry",
+		"somatic_cell_nuclear_transfer": "Embryonic cells extracted from an embryo that involved transfering a somatic cell nucleus into an enucleated oocyte",
+		"polar_body_nuclear_transfer": "",
+		"nuclear_transfer": "Cells are of a lineage in which an ancestor was generated via nuclear transfer",
+		"heterokaryon": "A cell consisting of multiple genetically different nuclei",
+		"poly_a_rna_depletion": "Poly-A RNA was depleted from collected RNA when preparing the library",
+		"hypoxia": "Cells were artificially starved of oxygen in vitro",
+        "synthetic_rna": "The sequenced RNA was not generated in a living organism",
+        "mitochondrial_rna": "Only mitochondrial RNA was selected and sequenced",
+        "mechanical_stress": "Cells were subjected to mechanical stress or strain",
+        "trisomic_21_cells": "Cells are trisomic for chromosome 21",
+        "non_rrna": "RNA-library preparation selects all RNA's, but is biased against rRNA. This is an 'implicit' rRNA depletion strategy"
+	},
+	"implications": {
+		"transduced": [
+			"infected",
+			"transfected"
+		],
+		"transduced_control": [
+			"transduced"
+		],
+		"transfected": [
+			"experimental_treatment",
+			"cultured"
+		],
+		"transfected_control": [
+			"transfected"
+		],
+		"low_passage": [
+			"cell_line"
+		],
+		"cell_line": [
+			"cultured"
+		],
+		"stimulation":  [
+			"in_vitro_differentiated_cells"
+		],
+		"in_vitro_differentiated_cells": [
+            "cultured",
+			"experimental_treatment"
+		],
+		"less_200_bases": [
+			"rna_size_selection"
+		],
+		"less_100_bases": [
+			"rna_size_selection"
+		],
+		"greater_200_bases": [
+            "rna_size_selection"
+        ],
+        "rna_size_selection": [
+            "alternate_assay"
+        ],
+		"experimental_chemical_treatment": [
+			"cultured",
+			"experimental_treatment"
+		],
+		"sirna_treatment": [
+			"experimental_treatment",
+			"cultured"
+		],
+		"sirna_treatment_control": [
+			"sirna_treatment"
+		],
+		"shrna_treatment": [
+			"experimental_treatment",
+			"cultured"
+		],
+		"shrna_treatment_control": [
+			"shrna_treatment"
+		],
+		"ultra_violet_radiation_treatment": [
+			"experimental_treatment"
+		],
+		"gene_knockout": [
+			"experimental_treatment"
+		],
+		"gene_enrichment": [
+			"experimental_treatment"
+		],
+		"mouse_xenograft": [
+			"experimental_treatment"
+		],
+		"heterokaryon": [
+			"nuclear_transfer"
+		],
+		"somatic_cell_nuclear_transfer": [
+			"nuclear_transfer"
+		],	
+        "polar_body_nuclear_transfer": [
+			"nuclear_transfer"
+		],
+		"nuclear_transfer": [
+			"experimental_treatment"
+		],
+		"poly_a_rna_depletion": [
+			"alternate_assay"
+		],
+		"hypoxia": [
+			"experimental_treatment",
+			"cultured"
+		],
+		"cancer_associated_cells": [
+			"diseased_cells"	
+		],
+        "cancer_cells": [
+            "diseased_cells"
+        ],
+        "induced_pluripotent_stem_cells": [
+            "in_vitro_differentiated_cells"
+        ],
+        "mitochondrial_rna": [
+            "alternate_assay"
+        ],
+        "synthetic_rna": [
+            "alternate_assay"
+        ],
+        "trisomic_21_cells": [
+            "diseased_cells"
+        ],
+        "mechanical_stress": [
+            "experimental_treatment"
+        ]
+	},
+	"mutually_exclusive": [
+		[
+			"total_rna",
+			"poly_a_rna"
+		],
+		[
+			"cultured",
+			"uncultured"
+		],
+		[
+			"cultured",
+			"tissue"
+		],
+		[
+			"poly_a_rna",
+			"total_rna"
+		]
+	]
+}
+

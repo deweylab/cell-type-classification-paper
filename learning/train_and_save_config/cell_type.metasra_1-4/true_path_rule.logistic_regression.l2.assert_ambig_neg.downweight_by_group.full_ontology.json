@@ -1,0 +1,8 @@
+{
+    "experiment_name": "true_path_rule.logistic_regression.l2.downweight_by_group",
+    "features": "kallisto_gene_log_cpm",
+    "algo_config_file": "true_path_rule.logistic_regression.l2.assert_ambig_neg.downweight_by_group.json",
+    "dim_reduct_config_file": null,
+    "collapse_ontology": false
+}
+

@@ -1,0 +1,33 @@
+{
+    "env_dir": "/tier2/deweylab/mnbernstein/phenotyping_environments/cell_type.metasra_1-4.annot_5-1",
+    "exp_list_name": "untampered_single_cell_primary_cells_with_data_cell_types_in_bulk",
+    "test_label_graph_file": "/tier2/deweylab/mnbernstein/phenotyping_environments/cell_type.metasra_1-4.annot_5-1/data/experiment_lists/untampered_cells_with_data/labelling.json",
+    "train_label_graph_file": "/tier2/deweylab/mnbernstein/phenotyping_environments/cell_type.metasra_1-4.annot_5-1/data/experiment_lists/untampered_bulk_primary_cells_with_data/labelling.json",
+    "result_files": [
+        "/tier2/deweylab/mnbernstein/phenotyping_environments/cell_type.metasra_1-4.annot_5-1/data/experiment_lists/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/trained_on_another_experiment_list/untampered_bulk_primary_cells_with_data/isotonic.logistic_regression.l2.downweight_by_group.assert_ambig_neg.full_ontology/prediction_results.json",
+        "/tier2/deweylab/mnbernstein/phenotyping_environments/cell_type.metasra_1-4.annot_5-1/data/experiment_lists/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/trained_on_another_experiment_list/untampered_bulk_primary_cells_with_data/true_path_rule.logistic_regression.l2.assert_ambig_neg.downweight_by_group.full_ontology/prediction_results.json", 
+        "/tier2/deweylab/mnbernstein/phenotyping_environments/cell_type.metasra_1-4.annot_5-1/data/experiment_lists/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/trained_on_another_experiment_list/untampered_bulk_primary_cells_with_data/cdc.logistic_regression.l2.assert_ambig_neg.downweight_by_group.full_ontology/prediction_results.json"
+    ],
+    "method_names": [
+        "wIR",
+        "wCLR"
+    ],
+    "boxplot_individuals": [
+        0, 1, 2
+    ],
+    "boxplot_individual_names": [
+        "IR",
+        "TPR",
+        "CLR"
+    ],
+    "output_dir": "/tier2/deweylab/mnbernstein/phenotyping_environments/cell_type.metasra_1-4.annot_5-1/data/experiment_lists/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/trained_on_another_experiment_list/untampered_bulk_primary_cells_with_data/summary_only_ml_methods",
+    "comparison_matrix": [
+        [[0,0], [0,1]],
+        [[1,0], [1,1]]
+    ],
+    "pred_thresh_ranges": [
+        "zero_to_one",
+        "zero_to_one",
+        "zero_to_one"
+    ]
+}
