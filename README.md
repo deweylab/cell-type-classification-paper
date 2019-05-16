@@ -2,7 +2,7 @@
 
 ## About
 
-CellO (Cell Ontology-based classification) is a Python package for performing cell type classification of RNA-seq data. CellO makes hierarchical predictions against the [Cell Ontology](http://www.obofoundry.org/ontology/cl.html). These classifiers were trained on nearly all of the primary cell, bulk RNA-seq data in the [Sequence Read Archive](https://www.ncbi.nlm.nih.gov/sra). 
+CellO (Cell Ontology-based classification) is a Python package for performing cell type classification of RNA-seq data. CellO makes hierarchical predictions against the [Cell Ontology](http://www.obofoundry.org/ontology/cl.html). These classifiers were trained on nearly all of the primary cell, bulk RNA-seq data in the [Sequence Read Archive](https://www.ncbi.nlm.nih.gov/sra).  For details, see the [paper](https://www.biorxiv.org/content/10.1101/634097v1). 
 
 ## Setup 
 
@@ -31,7 +31,3 @@ To run the classifier on a feature vector:
 ``python cellpredict/predict.py <output file from generate_feat_vec.py>``
 
 This command will create two files: ``predictions.tsv`` stores the binarized predictions and ``prediction_scores.tsv`` stores the raw probability scores for each cell type.
-
-
-=======
-# cell-type-classification-paper
