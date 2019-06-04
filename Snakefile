@@ -1,8 +1,8 @@
 ####################################################################
 #   When the annotation changes, these variables need to be updated
 ####################################################################
-ANNOTATION_F = '/ua/mnbernstein/projects/tbcp/phenotyping/manage_data/annotations/from.cell_type_primary_cells_v1-4/cell_type_primary_cells_v1-4.annot_5-1.experiment_centric.json'
-ENV_NAME = 'cell_type.metasra_1-4.annot_5-1'
+ANNOTATION_F = '/ua/mnbernstein/projects/tbcp/phenotyping/manage_data/annotations/from.cell_type_primary_cells_v1-4/cell_type_primary_cells_v1-4.annot_6.experiment_centric.json'
+ENV_NAME = 'cell_type.metasra_1-4.annot_6'
 
 ENV_DIR = '/tier2/deweylab/mnbernstein/phenotyping_environments/{}'.format(ENV_NAME)
 PROJECT_DIR = '/ua/mnbernstein/projects/tbcp/phenotyping'
@@ -12,10 +12,7 @@ EXPERIMENT_LISTS = [
     'untampered_bulk_primary_cells_with_data',
     'train_set.untampered_bulk_primary_cells_with_data',
     'test_set.untampered_bulk_primary_cells_with_data',
-    'untampered_single_cell_primary_cells_with_data',
-    'test_experiments',
-    'toy',
-    'toy_single_cell' 
+    'untampered_single_cell_primary_cells_with_data'
 ]
 EXPERIMENT_LISTS_2 = [
     'untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
@@ -38,6 +35,9 @@ ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL = "isotonic.logistic_regression.l2.full_ontolo
 ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL = "isotonic.logistic_regression.l2.assert_ambig_neg.full_ontology"
 ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT = "isotonic.logistic_regression.l2.downweight_by_group.full_ontology"
 ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT = "isotonic.logistic_regression.l2.downweight_by_group.assert_ambig_neg.full_ontology"
+
+ISOTONIC_LOGISTIC_L2_LOG_CPM_PSUEDO_FULL_DOWNWEIGHT = "ir.log_reg.l2.downweight.cpm_psuedo"
+
 
 BNC_LOG_CPM_LINEAR_SVM = "bnc.linear_svm.dynamic_bins_10.bin_pseudo_1.counts_prior.gibbs.burn_in_30000"
 BNC_LOG_CPM_LINEAR_SVM_CONSTANT_PRIOR = "bnc.linear_svm.dynamic_bins_10.bin_pseudo_1.constant.gibbs.burn_in_30000"
@@ -68,12 +68,39 @@ NAIVE_BAYES_SVM_COUNTS_ASSERT_AMBIG_NEG = "naive_bayes.linear_svm.dynamic_bins_1
 TPR_LOGISTIC_L2_LOG_CPM_FULL = "true_path_rule.logistic_regression.l2.assert_ambig_neg.full_ontology"
 TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT = "true_path_rule.logistic_regression.l2.assert_ambig_neg.downweight_by_group.full_ontology"
 
+ANALYZE_BULK_ALGOS=[
+    ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL,
+    ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT,
+    TPR_LOGISTIC_L2_LOG_CPM_FULL,
+    TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT,
+    CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL, 
+    CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT, 
+    BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG, 
+    PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL,     
+    PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL_DOWNWEIGHT,     
+    ONE_NN_LOG_CPM_CORRELATION     
+]
+
+ANALYZE_BULK_PLOTS = [
+    'achievable_recall_boxplot.eps',  
+    'avg_prec_boxplot.pdf',                 
+    'paired_avg_prec_boxplot.eps',  
+    'pan_data_set_pr_curves.pdf',           
+    'pr_curves_on_graph.pdf',                  
+    'win_diff_achievable_recall_heatmap.pdf',
+    'achievable_recall_boxplot.pdf',  
+    'paired_achievable_recall_boxplot.eps',  
+    'paired_avg_prec_boxplot.pdf', 
+    'avg_prec_boxplot.eps',           
+    'paired_achievable_recall_boxplot.pdf',
+    'pan_data_set_pr_curves.eps',   
+    'win_diff_avg_prec_heatmap.pdf'
+]
+
 rule all:
     input:
         expand('{}/data/experiment_lists/{{exp_list}}/experiment_list.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS),
-        expand('{}/data/experiment_lists/{{exp_list}}/labelling.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS),
-        expand('{}/data/experiment_lists/{{exp_list}}/labelling_collapsed_dag.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS)
-        # TODO add all outputs?
+        expand('{}/data/experiment_lists/{{exp_list}}/labelling.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS)
         
 rule visualizations:
     input:
@@ -89,7 +116,6 @@ rule setup:
         expand('{}/data/experiment_lists/{{exp_list}}/experiment_list.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS_3),
         expand('{}/data/experiment_lists/{{exp_list}}/labelling.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS_2),
         expand('{}/data/experiment_lists/{{exp_list}}/labelling.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS_3),
-        expand('{}/data/experiment_lists/{{exp_list}}/labelling_collapsed_dag.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS),
         '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
             env_dir=ENV_DIR,
             exp_list='untampered_bulk_primary_cells_with_data',
@@ -134,58 +160,24 @@ rule effects_of_heterogeneous_data_analysis:
         for c in commands:
             shell(c)
 
-
-####################################################################
-#   Perform GO gene set enrichment analysis on coefficients
-####################################################################
-rule gene_set_enrichment_analysis_cdc:
+rule analyze_effects_of_heterogeneous_data_analysis:
     input:
-        model = '{env_dir}/data/experiment_lists/untampered_bulk_primary_cells_with_data/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-        )
+        '{}/data/experiment_lists/untampered_bulk_primary_cells_with_data/analyze_effects_of_heterogeneous_data/homo_vs_hetero_training_results.min_10.json'.format(ENV_DIR)
     output:
-        '{env_dir}/data/experiment_lists/untampered_bulk_primary_cells_with_data/gsea_results/{algo_config}/coefficient_enriched_GO_terms.json'.format(
-            env_dir=ENV_DIR,
-            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-        )
+        '{}/data/experiment_lists/untampered_bulk_primary_cells_with_data/analyze_effects_of_heterogeneous_data/compare_avg_precs_homo_heter.pdf'
     run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/untampered_bulk_primary_cells_with_data/gsea_results/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-            ),
-            'mkdir -p /scratch/mnbernstein/gsea_coeffs_condor/untampered_bulk_primary_cells_with_data.{}'.format(
-                CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-            ),
-            'python2.7 {project_dir}/learning/interpret_models/gsea_coeffs_condor_primary.py {env_dir} untampered_bulk_primary_cells_with_data {{input.model}} -c /scratch/mnbernstein/gsea_coeffs_condor/untampered_bulk_primary_cells_with_data.{algo_config} -o {{output}}'.format(
+        commands=[
+            'python2.7 {project_dir}/learning/analyze_effects_of_heterogeneous_data/assess_results.py {{input}} {env} untampered_bulk_primary_cells_with_data -o {env}/data/experiment_lists/untampered_bulk_primary_cells_with_data/analyze_effects_of_heterogeneous_data'.format(
                 project_dir=PROJECT_DIR,
-                env_dir=ENV_DIR,
-                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
+                env=ENV_DIR
             )
         ]
         for c in commands:
             shell(c)
 
-
-rule extract_GO_terms_cdc:
-    input:
-        '{env_dir}/data/experiment_lists/untampered_bulk_primary_cells_with_data/gsea_results/{algo_config}/coefficient_enriched_GO_terms.json'.format(
-            env_dir=ENV_DIR,
-            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-        )
-    output:
-        '{env_dir}/data/experiment_lists/untampered_bulk_primary_cells_with_data/gsea_results/{algo_config}/enriched_GO_terms_summary.json'.format(
-            env_dir=ENV_DIR,
-            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-        )
-    run:
-        commands = [
-            'python2.7 {}/learning/interpret_models/extract_statistically_enriched_terms.py {{input}} -o {{output}}'.format(PROJECT_DIR)
-        ]
-        for c in commands:
-            shell(c)
-
+####################################################################
+#   Perform GO gene set enrichment analysis on coefficients
+####################################################################
 
 rule gene_set_enrichment_analysis_cdc_downweight:
     input:
@@ -226,53 +218,6 @@ rule extract_GO_terms_cdc_downweight:
         '{env_dir}/data/experiment_lists/untampered_bulk_primary_cells_with_data/gsea_results/{algo_config}/enriched_GO_terms_summary.json'.format(
             env_dir=ENV_DIR,
             algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'python2.7 {}/learning/interpret_models/extract_statistically_enriched_terms.py {{input}} -o {{output}}'.format(PROJECT_DIR)
-        ]
-        for c in commands:
-            shell(c)
-
-rule gene_set_enrichment_analysis_isotonic_regression:
-    input:
-        model = '{env_dir}/data/experiment_lists/untampered_bulk_primary_cells_with_data/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
-        )
-    output:
-        '{env_dir}/data/experiment_lists/untampered_bulk_primary_cells_with_data/gsea_results/{algo_config}/coefficient_enriched_GO_terms.json'.format(
-            env_dir=ENV_DIR,
-            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/untampered_bulk_primary_cells_with_data/gsea_results/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
-            ),
-            'mkdir -p /scratch/mnbernstein/gsea_coeffs_condor/untampered_bulk_primary_cells_with_data.{}'.format(
-                ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
-            ),
-            'python2.7 {project_dir}/learning/interpret_models/gsea_coeffs_condor_primary.py {env_dir} untampered_bulk_primary_cells_with_data {{input.model}} -c /scratch/mnbernstein/gsea_coeffs_condor/untampered_bulk_primary_cells_with_data.{algo_config} -o {{output}}'.format(
-                project_dir=PROJECT_DIR,
-                env_dir=ENV_DIR,
-                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule extract_GO_terms_isotonic:
-    input:
-        '{env_dir}/data/experiment_lists/untampered_bulk_primary_cells_with_data/gsea_results/{algo_config}/coefficient_enriched_GO_terms.json'.format(
-            env_dir=ENV_DIR,
-            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
-        )
-    output:
-        '{env_dir}/data/experiment_lists/untampered_bulk_primary_cells_with_data/gsea_results/{algo_config}/enriched_GO_terms_summary.json'.format(
-            env_dir=ENV_DIR,
-            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
         )
     run:
         commands = [
@@ -373,7 +318,6 @@ rule compare_GO_terms_isotonic_cdc_downweight:
 #   of bulk RNA-seq experiments. Analyze inconsistent edges using 
 #   leave-study-out cross validation on entire training set
 ######################################################################
-
 rule leave_study_out_cv_full_data_per_label_logistic_l2_condor:
     input:
         data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
@@ -394,7 +338,7 @@ rule leave_study_out_cv_full_data_per_label_logistic_l2_condor:
                 env_dir=ENV_DIR,
                 cv_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
             ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/untampered_bulk_primary_cells_with_data/{cv_config}'.format(
+            'python2.7 {project_dir}/learning/leave_study_out_condorized/leave_study_out_cv_condor_primary.py {project_dir}/learning/train_config/{env_name}/{cv_config}.json {env_dir} untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}/leave_study_out_cv_condor/untampered_bulk_primary_cells_with_data/{cv_config}'.format(
                 project_dir=PROJECT_DIR,
                 env_name=ENV_NAME,
                 env_dir=ENV_DIR,
@@ -404,7 +348,6 @@ rule leave_study_out_cv_full_data_per_label_logistic_l2_condor:
         ]
         for c in commands:
             shell(c)
-
 
 rule analyze_inconsistent_edges:
     input:
@@ -449,1131 +392,50 @@ rule analyze_inconsistent_edges:
         for c in commands:
             shell(c)
 
+#######################################################################
+#   Generate plots from training on the bulk training set and applying
+#   the model to the bulk test set
+#######################################################################
+rule analyze_bulk_test_set:
+    input:
+        expand(
+            '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{{algo_config}}/prediction_results.json'.format(
+                env_dir=ENV_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data'
+            ), 
+            algo_config=ANALYZE_BULK_ALGOS
+        )
+    output:
+        expand(
+            '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/summary/{{plot_f}}'.format(
+                env_dir=ENV_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data'
+            ),
+            plot_f=ANALYZE_BULK_PLOTS
+        )
+    run:
+        commands=[
+            'mkdir -p {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/summary'.format(
+                env_dir=ENV_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data'
+            ),  
+            'python2.7 {project_dir}/learning/evaluation/compare_mult_methods.py {project_dir}/learning/evaluation/method_comparison_configs/bulk_test_set.json'.format(
+                project_dir=PROJECT_DIR
+            )
+        ]
+        for c in commands:
+            shell(c)
 
+        
 #####################################################################
-#   Run leave-study-out cross-fold validation on the training set
-#   of experiments
+#   Algorithm: Indpendent classifiers
+#   Weighted loss function: no
+#   Training set: training set
 #####################################################################
-
-rule bnc_linear_svm_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=BNC_LOG_CPM_LINEAR_SVM
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule bnc_linear_svm_full_constant_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=BNC_LOG_CPM_LINEAR_SVM_CONSTANT_PRIOR
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM_CONSTANT_PRIOR
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM_CONSTANT_PRIOR
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM_CONSTANT_PRIOR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule bnc_logistic_full_constant_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=BNC_LOG_CPM_LOGISTIC_L2_CONSTANT_PRIOR
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_CONSTANT_PRIOR
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_CONSTANT_PRIOR
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_CONSTANT_PRIOR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule bnc_logistic_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=BNC_LOG_CPM_LOGISTIC_L2
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule bnc_logistic_psudeo_0_1_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=BNC_LOG_CPM_LOGISTIC_L2_PSEUDO_0_1
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_PSEUDO_0_1
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_PSEUDO_0_1
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_PSEUDO_0_1
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule bnc_logistic_conditional_prior_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-
-rule bnc_logistic_conditional_prior_static_bins_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output: 
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND_STATIC_BINS
-        )   
-    run:    
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND_STATIC_BINS
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND_STATIC_BINS
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND_STATIC_BINS
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule bnc_linear_svm_conditional_prior_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=BNC_LOG_CPM_LINEAR_SVM_COND
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM_COND
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM_COND
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM_COND
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule isotonic_logistic_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL
-            )
-        ]
-        for c in commands:
-            shell(c) 
-
-rule isotonic_logistic_assert_ambig_neg_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule tpr_logistic_assert_ambig_neg_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule isotonic_logistic_full_downweight_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule isotonic_logistic_full_assert_ambig_neg_downweight_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule cdc_assert_ambig_neg_collapse_leave_study_out_cv:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_COLLAPSE
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_batches/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_COLLAPSE
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_COLLAPSE
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -b {tmp_dir}/leave_study_out_cv_batches/train_set.untampered_bulk_primary_cells_with_data/{cv_config} -o {{output}}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_COLLAPSE
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule cdc_assert_ambig_neg_collapse_downweight_leave_study_out_cv:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_COLLAPSE_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_batches/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_COLLAPSE_DOWNWEIGHT
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_COLLAPSE_DOWNWEIGHT
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -b {tmp_dir}/leave_study_out_cv_batches/train_set.untampered_bulk_primary_cells_with_data/{cv_config} -o {{output}}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_COLLAPSE_DOWNWEIGHT
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule cdc_assert_ambig_neg_collapse_downweight_leave_study_out_cv_condorized:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_COLLAPSE_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_COLLAPSE_DOWNWEIGHT
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_COLLAPSE_DOWNWEIGHT
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_COLLAPSE_DOWNWEIGHT
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule cdc_assert_ambig_neg_full_downweight_leave_study_out_cv_condorized:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule cdc_assert_ambig_neg_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule cdc_remove_ambig_collapse_leave_study_out_cv:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=CDC_LOG_CPM_LOGISTIC_L2_REMOVE_AMBIG_COLLAPSE
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_batches/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_REMOVE_AMBIG_COLLAPSE
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_REMOVE_AMBIG_COLLAPSE
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -b {tmp_dir}/leave_study_out_cv_batches/train_set.untampered_bulk_primary_cells_with_data/{cv_config} -o {{output}}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_REMOVE_AMBIG_COLLAPSE
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule per_label_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-
-rule one_nn_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=ONE_NN_LOG_CPM_CORRELATION
-        )
-    run:
-        commands = [    
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=ONE_NN_LOG_CPM_CORRELATION
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=ONE_NN_LOG_CPM_CORRELATION
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=ONE_NN_LOG_CPM_CORRELATION
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-#rule one_nn_leave_study_out_cv:
-#    input:
-#        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-#        exp_list_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR),
-#        labelling_f='{}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/labelling.json'.format(ENV_DIR)
-#    output:
-#        '{env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-#            env_dir=ENV_DIR,
-#            cv_config=ONE_NN_LOG_CPM_CORRELATION
-#        )
-#    run:
-#        commands = [
-#            'mkdir -p {tmp_dir}/leave_study_out_cv_batches/train_set.untampered_bulk_primary_cells_with_data/{cv_config}'.format(
-#                tmp_dir=TMP_DIR,
-#                cv_config=ONE_NN_LOG_CPM_CORRELATION
-#            ),
-#            'mkdir -p {env_dir}/data/experiment_lists/train_set.untampered_bulk_primary_cells_with_data/leave_study_out_cv_results/{cv_config}'.format(
-#                env_dir=ENV_DIR,
-#                cv_config=ONE_NN_LOG_CPM_CORRELATION
-#            ),
-#            'python2.7 {project_dir}/learning/leave_study_out_cv.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} train_set.untampered_bulk_primary_cells_with_data -b {tmp_dir}/leave_study_out_cv_batches/train_set.untampered_bulk_primary_cells_with_data/{cv_config} -o {{output}}'.format(
-#                project_dir=PROJECT_DIR,
-#                env_name=ENV_NAME,
-#                env_dir=ENV_DIR,
-#                tmp_dir=TMP_DIR,
-#                cv_config=ONE_NN_LOG_CPM_CORRELATION
-#            )
-#        ]
-#        for c in commands:
-#            shell(c)
-
-
-#####################################################################
-#   Test the various algorithms on the sets of experiments used
-#   for testing the algorithms for bugs.
-#####################################################################
-
-rule toy_bnc_linear_svm_normal_conditional_prior_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/toy/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/toy/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/toy/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} toy -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/toy/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule toy_bnc_linear_svm_normal_fixed_std_conditional_prior_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/toy/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/toy/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL_FIXED_STD
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/toy/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL_FIXED_STD
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL_FIXED_STD
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} toy -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/toy/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL_FIXED_STD
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule toy_bnc_logistic_conditional_prior_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/toy/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/toy/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/toy/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} toy -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/toy/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule toy_bnc_logistic_conditional_prior_static_bins_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/toy/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/toy/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND_STATIC_BINS
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/toy/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND_STATIC_BINS
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND_STATIC_BINS
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} toy -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/toy/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=BNC_LOG_CPM_LOGISTIC_L2_COND_STATIC_BINS
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule toy_cdc_remove_ambig_full_leave_study_out_cv: 
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/toy/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/toy/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=CDC_LOG_CPM_LOGISTIC_L2_REMOVE_AMBIG_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/toy/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_REMOVE_AMBIG_FULL
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_REMOVE_AMBIG_FULL
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} toy -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/toy/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=CDC_LOG_CPM_LOGISTIC_L2_REMOVE_AMBIG_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule toy_isotonic_logistic_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/toy/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/toy/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/toy/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} toy -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/toy/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule toy_tpr_logistic_full_leave_study_out_cv_condor:
-    input:
-        data_set='{}/data/data_set_metadata.json'.format(ENV_DIR),
-        exp_list_f='{}/data/experiment_lists/toy/experiment_list.json'.format(ENV_DIR),
-        labelling_f='{}/data/experiment_lists/toy/labelling.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            cv_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p {tmp_dir}/leave_study_out_cv_condor/toy/{cv_config}'.format(
-                tmp_dir=TMP_DIR,
-                cv_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-            ),
-            'mkdir -p {env_dir}/data/experiment_lists/toy/leave_study_out_cv_results/{cv_config}'.format(
-                env_dir=ENV_DIR,
-                cv_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv_condor_primary.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{cv_config}.json {env_dir} toy -o {{output}} -r {tmp_dir}//leave_study_out_cv_condor/toy/{cv_config}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                cv_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule toy_bnc_leave_study_out_cv:
-    input:
-        '{}/leave_study_out_cv_batches'.format(TMP_DIR),
-        '{}/data/experiment_lists/toy/experiment_list.json'.format(ENV_DIR)
-    output:
-        # Make sure the experiment configuration name is the output directory!
-        '{}/data/experiment_lists/toy/leave_study_out_cv_results/bnc.linear_svm.dynamic_bins_10.bin_pseudo_1.counts_prior.gibbs.burn_in_30000/leave_study_out_cv_results.json'.format(ENV_DIR)
-    params:
-        exp_config_name = 'bnc.linear_svm.dynamic_bins_10.bin_pseudo_1.counts_prior.gibbs.burn_in_30000'
-    run:
-        commands = [
-            'mkdir -p {}/data/experiment_lists/toy/leave_study_out_cv_results/{{params.exp_config_name}}'.format(ENV_DIR),
-            'mkdir -p {}/leave_study_out_cv_batches/toy/{{params.exp_config_name}}'.format(TMP_DIR),
-            'mkdir -p {}/leave_study_out_cv_artifacts/toy/{{params.exp_config_name}}'.format(TMP_DIR),
-            'python2.7 {project_dir}/learning/leave_study_out_cv.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{{params.exp_config_name}}.json {env_dir} toy -b {tmp_dir}/leave_study_out_cv_batches/toy/{{params.exp_config_name}} -r {tmp_dir}/leave_study_out_cv_artifacts/toy/{{params.exp_config_name}} -o {{output}}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule toy_cdc_svm_rbc_remove_ambig_leave_study_out_cv:
-    input:
-        '{}/leave_study_out_cv_batches'.format(TMP_DIR),
-        '{}/data/experiment_lists/toy/experiment_list.json'.format(ENV_DIR)
-    output:
-        # Make sure the experiment configuration name is the output directory!
-        '{}/data/experiment_lists/toy/leave_study_out_cv_results/cdc.svm.rbf.assert_ambig_neg/leave_study_out_cv_results.json'.format(ENV_DIR)
-    params:
-        exp_config_name = 'cdc.svm.rbf.assert_ambig_neg'
-    run:
-        commands = [
-            'mkdir -p {}/data/experiment_lists/toy/leave_study_out_cv_results/{{params.exp_config_name}}'.format(ENV_DIR),
-            'mkdir -p {}/leave_study_out_cv_batches/toy/{{params.exp_config_name}}'.format(TMP_DIR),
-            'mkdir -p {}/leave_study_out_cv_artifacts/toy/{{params.exp_config_name}}'.format(TMP_DIR),
-            'python2.7 {project_dir}/learning/leave_study_out_cv.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{{params.exp_config_name}}.json {env_dir} toy -b {tmp_dir}/leave_study_out_cv_batches/toy/{{params.exp_config_name}} -r {tmp_dir}/leave_study_out_cv_artifacts/toy/{{params.exp_config_name}} -o {{output}}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule test_cdc_assert_ambig_neg_downweight_by_group_leave_study_out_cv:
-    input:
-        '{}/leave_study_out_cv_batches'.format(TMP_DIR),
-        '{}/data/experiment_lists/test_experiments/experiment_list.json'.format(ENV_DIR)
-    output:
-        # Make sure the experiment configuration name is the output directory!
-        '{}/data/experiment_lists/test_experiments/leave_study_out_cv_results/cdc.logistic_regression.l2.assert_ambig_neg.downweight_by_group.collapse_ontology/leave_study_out_cv_results.json'.format(ENV_DIR)
-    params:
-        exp_config_name = 'cdc.logistic_regression.l2.assert_ambig_neg.downweight_by_group.collapse_ontology'
-    run:
-        commands = [
-            'mkdir -p {}/data/experiment_lists/test_experiments/leave_study_out_cv_results/{{params.exp_config_name}}'.format(ENV_DIR),
-            'mkdir -p {}/leave_study_out_cv_batches/test_experiments/{{params.exp_config_name}}'.format(TMP_DIR),
-            'mkdir -p {}/leave_study_out_cv_artifacts/test_experiments/{{params.exp_config_name}}'.format(TMP_DIR),
-            'python2.7 {project_dir}/learning/leave_study_out_cv.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{{params.exp_config_name}}.json {env_dir} test_experiments -b {tmp_dir}/leave_study_out_cv_batches/test_experiments/{{params.exp_config_name}} -r {tmp_dir}/leave_study_out_cv_artifacts/test_experiments/{{params.exp_config_name}} -o {{output}}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-    
-rule test_cdc_ambig_latent_leave_study_out_cv:
-    input:
-        '{}/leave_study_out_cv_batches'.format(TMP_DIR),
-        '{}/data/experiment_lists/test_experiments/experiment_list.json'.format(ENV_DIR)
-    output:
-        # Make sure the experiment configuration name is the output directory!
-        '{}/data/experiment_lists/test_experiments/leave_study_out_cv_results/cdc.logistic_regression.l2.ambig_latent.collapse_ontology/leave_study_out_cv_results.json'.format(ENV_DIR)
-    params:
-        exp_config_name = 'cdc.logistic_regression.l2.ambig_latent.collapse_ontology'
-    run:
-        commands = [
-            'mkdir -p {}/data/experiment_lists/test_experiments/leave_study_out_cv_results/{{params.exp_config_name}}'.format(ENV_DIR),
-            'mkdir -p {}/leave_study_out_cv_batches/test_experiments/{{params.exp_config_name}}'.format(TMP_DIR),
-            'mkdir -p {}/leave_study_out_cv_artifacts/test_experiments/{{params.exp_config_name}}'.format(TMP_DIR),
-            'python2.7 {project_dir}/learning/leave_study_out_cv.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{{params.exp_config_name}}.json {env_dir} test_experiments -b {tmp_dir}/leave_study_out_cv_batches/test_experiments/{{params.exp_config_name}} -r {tmp_dir}/leave_study_out_cv_artifacts/test_experiments/{{params.exp_config_name}} -o {{output}}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule toy_cdc_leave_study_out_cv:
-    input:
-        '{}/leave_study_out_cv_batches'.format(TMP_DIR),
-        '{}/data/experiment_lists/toy/experiment_list.json'.format(ENV_DIR)
-    output:
-        # Make sure the experiment configuration name is the output directory!
-        '{}/data/experiment_lists/toy/leave_study_out_cv_results/cdc.logistic_regression.l2.remove_ambig/leave_study_out_cv_results.json'.format(ENV_DIR)
-    params:
-        exp_config_name = 'cdc.logistic_regression.l2.remove_ambig'
-    run:
-        commands = [
-            'mkdir -p {}/data/experiment_lists/toy/leave_study_out_cv_results/{{params.exp_config_name}}'.format(ENV_DIR),
-            'mkdir -p {}/leave_study_out_cv_batches/toy/{{params.exp_config_name}}'.format(TMP_DIR),
-            'mkdir -p {}/leave_study_out_cv_artifacts/toy/{{params.exp_config_name}}'.format(TMP_DIR),
-            'python2.7 {project_dir}/learning/leave_study_out_cv.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{{params.exp_config_name}}.json {env_dir} toy -b {tmp_dir}/leave_study_out_cv_batches/toy/{{params.exp_config_name}} -r {tmp_dir}/leave_study_out_cv_artifacts/toy/{{params.exp_config_name}} -o {{output}}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule test_cdc_leave_study_out_cv:
-    input:
-        '{}/leave_study_out_cv_batches'.format(TMP_DIR),
-        '{}/data/experiment_lists/test_experiments/experiment_list.json'.format(ENV_DIR)
-    output:
-        # Make sure the experiment configuration name is the output directory!
-        '{}/data/experiment_lists/test_experiments/leave_study_out_cv_results/cdc.logistic_regression.l2.remove_ambig/leave_study_out_cv_results.json'.format(ENV_DIR)
-    params:
-        exp_config_name = 'cdc.logistic_regression.l2.remove_ambig'
-    run:
-        commands = [
-            'mkdir -p {}/data/experiment_lists/test_experiments/leave_study_out_cv_results/{{params.exp_config_name}}'.format(ENV_DIR),
-            'mkdir -p {}/leave_study_out_cv_batches/{{params.exp_config_name}}'.format(TMP_DIR),
-            'mkdir -p {}/leave_study_out_cv_artifacts/{{params.exp_config_name}}'.format(TMP_DIR),
-            'python2.7 {project_dir}/learning/leave_study_out_cv.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{{params.exp_config_name}}.json {env_dir} test_experiments -b {tmp_dir}/leave_study_out_cv_batches/{{params.exp_config_name}} -r {tmp_dir}/leave_study_out_cv_artifacts/{{params.exp_config_name}} -o {{output}}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule test_bnc_leave_study_out_cv:
-    input:
-        '{}/leave_study_out_cv_batches'.format(TMP_DIR),
-        '{}/data/experiment_lists/test_experiments/experiment_list.json'.format(ENV_DIR)
-    output:
-        '{}/data/experiment_lists/test_experiments/leave_study_out_cv_results/leave_study_out_cv_results.json'.format(ENV_DIR)
-    params:
-        exp_config_name = 'bnc.linear_svm.dynamic_bins_10.bin_pseudo_1.counts_prior'
-    run:
-        commands = [
-            'mkdir -p {}/leave_study_out_cv_batches/{{params.exp_config_name}}'.format(TMP_DIR),
-            'mkdir -p {}/leave_study_out_cv_artifacts/{{params.exp_config_name}}'.format(TMP_DIR),
-            'python2.7 {project_dir}/learning/leave_study_out_cv.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{{params.exp_config_name}}.json {env_dir} test_experiments -b {tmp_dir}/leave_study_out_cv_batches/{{params.exp_config_name}} -r {tmp_dir}/leave_study_out_cv_artifacts/{{params.exp_config_name}} -o {{output}}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule test_one_nn_leave_study_out_cv:
-    input:
-        '{}/leave_study_out_cv_batches'.format(TMP_DIR),
-        '{}/data/experiment_lists/test_experiments/experiment_list.json'.format(ENV_DIR)
-    output:
-        '{env_dir}/data/experiment_lists/test_experiments/{exp_config_name}/leave_study_out_cv_results/leave_study_out_cv_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_config_name=ONE_NN_LOG_CPM_CORRELATION
-        )
-    run:
-        commands = [
-            'mkdir {tmp_dir}/leave_study_out_cv_batches/{exp_config_name}'.format(
-                tmp_dir=TMP_DIR,
-                exp_config_name=ONE_NN_LOG_CPM_CORRELATION
-            ),
-            'python2.7 {project_dir}/learning/leave_study_out_cv.py {project_dir}/learning/leave_study_out_cv_config/{env_name}/{exp_config_name}.json {env_dir} test_experiments -b {tmp_dir}/leave_study_out_cv_batches/{exp_config_name}  -o {{output}}'.format(
-                project_dir=PROJECT_DIR,
-                env_name=ENV_NAME,
-                env_dir=ENV_DIR,
-                tmp_dir=TMP_DIR,
-                exp_config_name=ONE_NN_LOG_CPM_CORRELATION
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-#####################################################################
-#   Train models on the training set
-####################################################################
-
-rule train_per_label_logistic_regression_l2_assert_ambig_neg:
+rule train_training_ind:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
@@ -1597,7 +459,7 @@ rule train_per_label_logistic_regression_l2_assert_ambig_neg:
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
                 algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
@@ -1608,7 +470,56 @@ rule train_per_label_logistic_regression_l2_assert_ambig_neg:
         for c in commands:
             shell(c)
 
-rule train_per_label_logistic_regression_l2_assert_ambig_neg_downweight:
+rule apply_test_ind:
+    input:
+        test_exp_list = '{env_dir}/data/experiment_lists/{test_exp_list}/experiment_list.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        labelling_f = '{env_dir}/data/experiment_lists/{test_exp_list}/labelling.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+            env_dir=ENV_DIR,
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
+        )
+    output:
+        '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
+        )
+    run:
+        commands = [
+            'mkdir -p {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
+            ),
+            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {test_exp_list} -o {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                project_dir=PROJECT_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+
+
+
+#####################################################################
+#   Algorithm: Indpendent classifiers
+#   Weighted loss function: yes
+#   Training set: training set
+#####################################################################
+rule train_training_ind_downweight:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
@@ -1632,7 +543,7 @@ rule train_per_label_logistic_regression_l2_assert_ambig_neg_downweight:
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
                 algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL_DOWNWEIGHT
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
@@ -1643,8 +554,53 @@ rule train_per_label_logistic_regression_l2_assert_ambig_neg_downweight:
         for c in commands:
             shell(c)
 
+rule apply_test_ind_downweight:
+    input:
+        test_exp_list = '{env_dir}/data/experiment_lists/{test_exp_list}/experiment_list.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        labelling_f = '{env_dir}/data/experiment_lists/{test_exp_list}/labelling.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+            env_dir=ENV_DIR,
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL_DOWNWEIGHT
+        )
+    output:
+        '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL_DOWNWEIGHT
+        )
+    run:
+        commands = [
+            'mkdir -p {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL_DOWNWEIGHT
+            ),
+            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {test_exp_list} -o {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                project_dir=PROJECT_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL_DOWNWEIGHT
+            )
+        ]
+        for c in commands:
+            shell(c)
 
-rule train_cdc_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
+#####################################################################
+#   Algorithm: CLR
+#   Weighted loss function: yes
+#   Training set: training set
+#####################################################################
+rule train_training_clr_downweight:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
@@ -1668,7 +624,7 @@ rule train_cdc_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
                 algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
@@ -1679,7 +635,55 @@ rule train_cdc_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
         for c in commands:
             shell(c)
 
-rule train_full_data_cdc_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
+
+rule apply_test_clr_downweight:
+    input:
+        test_exp_list = '{env_dir}/data/experiment_lists/{test_exp_list}/experiment_list.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        labelling_f = '{env_dir}/data/experiment_lists/{test_exp_list}/labelling.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+            env_dir=ENV_DIR,
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
+        )
+    output:
+        '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
+        )
+    run:
+        commands = [
+            'mkdir -p {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
+            ),
+            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {test_exp_list} -o {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                project_dir=PROJECT_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+
+#####################################################################
+#   Algorithm: CLR
+#   Weighted loss function: yes
+#   Training set: all samples
+#####################################################################
+rule train_all_clr_downweight:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
@@ -1703,7 +707,7 @@ rule train_full_data_cdc_logistic_regression_l2_assert_ambig_neg_downweight_by_g
                 exp_list='untampered_bulk_primary_cells_with_data',
                 algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='untampered_bulk_primary_cells_with_data',
@@ -1714,42 +718,53 @@ rule train_full_data_cdc_logistic_regression_l2_assert_ambig_neg_downweight_by_g
         for c in commands:
             shell(c)
 
-rule toy_train_cdc_logistic_regression_l2_assert_ambig_neg:
+rule apply_sc_clr_logistic_downweight:
     input:
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
+        test_exp_list = '{env_dir}/data/experiment_lists/{test_exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
-            exp_list='toy'
+            test_exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
         ),
-        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
+        labelling_f = '{env_dir}/data/experiment_lists/{test_exp_list}/labelling.json'.format(
             env_dir=ENV_DIR,
-            exp_list='toy'
+            test_exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
+        ),
+        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+            env_dir=ENV_DIR,
+            train_exp_list='untampered_bulk_primary_cells_with_data',
+            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
         )
     output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
+        '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
             env_dir=ENV_DIR,
-            exp_list='toy',
-            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
+            test_exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
+            train_exp_list='untampered_bulk_primary_cells_with_data',
+            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
         )
     run:
         commands = [
-            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
+            'mkdir -p {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
                 env_dir=ENV_DIR,
-                exp_list='toy',
-                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
+                test_exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
+                train_exp_list='untampered_bulk_primary_cells_with_data',
+                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {test_exp_list} -o {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
                 env_dir=ENV_DIR,
-                env_name=ENV_NAME,
-                exp_list='toy',
-                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL,
-                project_dir=PROJECT_DIR
+                project_dir=PROJECT_DIR,
+                test_exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
+                train_exp_list='untampered_bulk_primary_cells_with_data',
+                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
             )
         ]
         for c in commands:
             shell(c)
 
-rule train_cdc_logistic_regression_l2_assert_ambig_neg:
+#####################################################################
+#   Algorithm: CLR
+#   Weighted loss function: no
+#   Trained on: training set
+#####################################################################
+rule train_training_clr:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
@@ -1773,7 +788,7 @@ rule train_cdc_logistic_regression_l2_assert_ambig_neg:
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
                 algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
@@ -1784,43 +799,54 @@ rule train_cdc_logistic_regression_l2_assert_ambig_neg:
         for c in commands:
             shell(c)    
 
-
-rule train_full_data_cdc_logistic_regression_l2_assert_ambig_neg:
+rule apply_test_clr:
     input:
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
+        test_exp_list = '{env_dir}/data/experiment_lists/{test_exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data'
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
         ),
-        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
+        labelling_f = '{env_dir}/data/experiment_lists/{test_exp_list}/labelling.json'.format(
             env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data'
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+            env_dir=ENV_DIR,
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
         )
     output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
+        '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
             env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data',
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
             algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
         )
     run:
         commands = [
-            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
+            'mkdir -p {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
                 env_dir=ENV_DIR,
-                exp_list='untampered_bulk_primary_cells_with_data',
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
                 algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {test_exp_list} -o {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
                 env_dir=ENV_DIR,
-                env_name=ENV_NAME,
-                exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL,
-                project_dir=PROJECT_DIR
+                project_dir=PROJECT_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
             )
         ]
         for c in commands:
             shell(c)
 
-rule train_isotonic_logistic_regression_l2_assert_ambig_neg:
+
+#####################################################################
+#   Algorithm: IR
+#   Weighted loss function: no
+#   Trained on: training set
+#####################################################################
+rule train_training_ir:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
@@ -1844,7 +870,7 @@ rule train_isotonic_logistic_regression_l2_assert_ambig_neg:
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
                 algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
@@ -1855,42 +881,54 @@ rule train_isotonic_logistic_regression_l2_assert_ambig_neg:
         for c in commands:
             shell(c)
 
-rule train_full_data_isotonic_logistic_regression_l2_assert_ambig_neg:
+rule apply_test_ir:
     input:
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
+        test_exp_list = '{env_dir}/data/experiment_lists/{test_exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data'
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
         ),
-        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
+        labelling_f = '{env_dir}/data/experiment_lists/{test_exp_list}/labelling.json'.format(
             env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data'
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+            env_dir=ENV_DIR,
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
         )
     output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
+        '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
             env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data',
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
             algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
         )
     run:
         commands = [
-            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
+            'mkdir -p {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
                 env_dir=ENV_DIR,
-                exp_list='untampered_bulk_primary_cells_with_data',
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
                 algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {test_exp_list} -o {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
                 env_dir=ENV_DIR,
-                env_name=ENV_NAME,
-                exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL,
-                project_dir=PROJECT_DIR
+                project_dir=PROJECT_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
             )
         ]
         for c in commands:
             shell(c)
 
-rule train_isotonic_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
+
+#####################################################################
+#   Algorithm: IR
+#   Weighted loss function: yes
+#   Trained on: training set
+#####################################################################
+rule train_training_ir_downweight:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
@@ -1914,7 +952,7 @@ rule train_isotonic_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
                 algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
@@ -1925,7 +963,54 @@ rule train_isotonic_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
         for c in commands:
             shell(c)
 
-rule train_full_data_isotonic_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
+rule apply_test_ir_downweight:
+    input:
+        test_exp_list = '{env_dir}/data/experiment_lists/{test_exp_list}/experiment_list.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        labelling_f = '{env_dir}/data/experiment_lists/{test_exp_list}/labelling.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+            env_dir=ENV_DIR,
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
+        )
+    output:
+        '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
+        )
+    run:
+        commands = [
+            'mkdir -p {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
+            ),
+            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {test_exp_list} -o {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                project_dir=PROJECT_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+
+#####################################################################
+#   Algorithm: IR
+#   Weighted loss function: yes
+#   Trained on: all samples
+#####################################################################
+rule train_all_ir_downweight:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
@@ -1949,7 +1034,7 @@ rule train_full_data_isotonic_logistic_regression_l2_assert_ambig_neg_downweight
                 exp_list='untampered_bulk_primary_cells_with_data',
                 algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='untampered_bulk_primary_cells_with_data',
@@ -1960,43 +1045,53 @@ rule train_full_data_isotonic_logistic_regression_l2_assert_ambig_neg_downweight
         for c in commands:
             shell(c)
 
-
-rule train_bnc_linear_svm_count_cond_prior:
+rule apply_sc_ir_downweight:
     input:
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
+        test_exp_list = '{env_dir}/data/experiment_lists/{test_exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data'
+            test_exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
         ),
-        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
+        labelling_f = '{env_dir}/data/experiment_lists/{test_exp_list}/labelling.json'.format(
             env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data'
+            test_exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
+        ),
+        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+            env_dir=ENV_DIR,
+            train_exp_list='untampered_bulk_primary_cells_with_data',
+            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
         )
     output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
+        '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
             env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=BNC_LOG_CPM_LINEAR_SVM_COND
+            test_exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
+            train_exp_list='untampered_bulk_primary_cells_with_data',
+            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
         )
     run:
         commands = [
-            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
+            'mkdir -p {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
                 env_dir=ENV_DIR,
-                exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND
+                test_exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
+                train_exp_list='untampered_bulk_primary_cells_with_data',
+                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {test_exp_list} -o {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
                 env_dir=ENV_DIR,
-                env_name=ENV_NAME,
-                exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND,
-                project_dir=PROJECT_DIR
+                project_dir=PROJECT_DIR,
+                test_exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
+                train_exp_list='untampered_bulk_primary_cells_with_data',
+                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
             )
         ]
         for c in commands:
             shell(c)
 
-rule train_bnc_linear_svm_count_cond_prior_assert_ambig_neg:
+
+#####################################################################
+#   Algorithm: BNC-SVM-bins 
+#   Trained on: training set
+#####################################################################
+rule train_training_bnc_svm:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
@@ -2020,7 +1115,7 @@ rule train_bnc_linear_svm_count_cond_prior_assert_ambig_neg:
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
                 algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
@@ -2031,6 +1126,51 @@ rule train_bnc_linear_svm_count_cond_prior_assert_ambig_neg:
         for c in commands:
             shell(c)
 
+rule apply_test_bnc_svm:
+    input:
+        test_exp_list = '{env_dir}/data/experiment_lists/{test_exp_list}/experiment_list.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        labelling_f = '{env_dir}/data/experiment_lists/{test_exp_list}/labelling.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+            env_dir=ENV_DIR,
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
+        )
+    output:
+        '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
+        )
+    run:
+        commands = [
+            'mkdir -p {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
+            ),
+            'python2.7 {project_dir}/learning/apply_saved_model_condorized/apply_saved_model_condor_primary.py {{input.model_f}} {env_dir} {test_exp_list} 5 -o {{output}} -c /scratch/mnbernstein/apply_trained_models_condor/{test_exp_list}.{algo_config}'.format(
+                env_dir=ENV_DIR,
+                project_dir=PROJECT_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+#####################################################################
+#   Algorithm: NB-SVM-bins
+#   Trained on: training set
+#####################################################################
 rule train_naive_bayes_linear_svm_count_cond_prior_assert_ambig_neg:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
@@ -2055,7 +1195,7 @@ rule train_naive_bayes_linear_svm_count_cond_prior_assert_ambig_neg:
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
                 algo_config=NAIVE_BAYES_SVM_COND_ASSERT_AMBIG_NEG
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
@@ -2066,290 +1206,10 @@ rule train_naive_bayes_linear_svm_count_cond_prior_assert_ambig_neg:
         for c in commands:
             shell(c)
 
-rule train_bnc_linear_svm_normal_count_cond_prior:
-    input:
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data'
-        ),
-        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data'
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL
-        )
-    run:
-        commands = [
-            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL
-            ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
-                env_dir=ENV_DIR,
-                env_name=ENV_NAME,
-                exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL,
-                project_dir=PROJECT_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule train_toy_bnc_linear_svm_normal_count_cond_prior:
-    input:
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='toy'
-        ),
-        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='toy'
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            exp_list='toy',
-            algo_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL
-        )
-    run:
-        commands = [
-            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='toy',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL
-            ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
-                env_dir=ENV_DIR,
-                env_name=ENV_NAME,
-                exp_list='toy',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL,
-                project_dir=PROJECT_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule train_bnc_linear_svm_normal_fixed_std_count_cond_prior:
-    input:
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data'
-        ),
-        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data'
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL_FIXED_STD
-        )
-    run:
-        commands = [
-            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL_FIXED_STD
-            ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
-                env_dir=ENV_DIR,
-                env_name=ENV_NAME,
-                exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL_FIXED_STD,
-                project_dir=PROJECT_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule train_full_data_bnc_linear_svm_count_cond_prior:
-    input:
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data'
-        ),
-        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data'
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data',
-            algo_config=BNC_LOG_CPM_LINEAR_SVM_COND
-        )
-    run:
-        commands = [
-            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND
-            ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
-                env_dir=ENV_DIR,
-                env_name=ENV_NAME,
-                exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND,
-                project_dir=PROJECT_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule train_tpr_logistic_regression_l2_assert_ambig_neg:
-    input:
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data'
-        ),
-        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data'
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-            ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
-                env_dir=ENV_DIR,
-                env_name=ENV_NAME,
-                exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL,
-                project_dir=PROJECT_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule train_full_data_tpr_logistic_regression_l2_assert_ambig_neg:
-    input:
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data'
-        ),
-        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data'
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data',
-            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-            ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
-                env_dir=ENV_DIR,
-                env_name=ENV_NAME,
-                exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL,
-                project_dir=PROJECT_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule train_tpr_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
-    input:
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data'
-        ),
-        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data'
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-            ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
-                env_dir=ENV_DIR,
-                env_name=ENV_NAME,
-                exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT,
-                project_dir=PROJECT_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule train_full_data_tpr_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
-    input:
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data'
-        ),
-        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data'
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data',
-            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-            ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
-                env_dir=ENV_DIR,
-                env_name=ENV_NAME,
-                exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT,
-                project_dir=PROJECT_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
+#####################################################################
+#   Alogirithm: BNC-LR-bins
+#   Trained on: training set
+#####################################################################
 rule train_bnc_logistic_regression_l2_assert_ambig_neg_cond_prior:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
@@ -2374,7 +1234,7 @@ rule train_bnc_logistic_regression_l2_assert_ambig_neg_cond_prior:
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
                 algo_config=BNC_LOG_CPM_LOGISTIC_L2_COND
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
@@ -2385,7 +1245,11 @@ rule train_bnc_logistic_regression_l2_assert_ambig_neg_cond_prior:
         for c in commands:
             shell(c)
 
-rule train_bnc_logistic_regression_l2_cond_prior:
+#####################################################################
+#   Algorithm: BNC-SVM-normal
+#   Trained on: training set
+#####################################################################
+rule train_bnc_linear_svm_normal_count_cond_prior:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
@@ -2399,7 +1263,7 @@ rule train_bnc_logistic_regression_l2_cond_prior:
         '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
             env_dir=ENV_DIR,
             exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=BNc_LOG_CPM_LOGISTIC_L2_COND_NO_ASSERT_AMBIG_NEG
+            algo_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL
         )
     run:
         commands = [
@@ -2407,57 +1271,25 @@ rule train_bnc_logistic_regression_l2_cond_prior:
             'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
                 env_dir=ENV_DIR,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNc_LOG_CPM_LOGISTIC_L2_COND_NO_ASSERT_AMBIG_NEG
+                algo_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNc_LOG_CPM_LOGISTIC_L2_COND_NO_ASSERT_AMBIG_NEG,
+                algo_config=BNC_LOG_CPM_LINEAR_SVM_NORMAL,
                 project_dir=PROJECT_DIR
             )
         ]
         for c in commands:
             shell(c)
-    
 
-#rule train_bnc_logistic_regression_l2_assert_ambig_neg:
-#    input:
-#        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-#            env_dir=ENV_DIR,
-#            exp_list='train_set.untampered_bulk_primary_cells_with_data'
-#        ),
-#        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-#            env_dir=ENV_DIR,
-#            exp_list='train_set.untampered_bulk_primary_cells_with_data'
-#        )
-#    output:
-#        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
-#            env_dir=ENV_DIR,
-#            exp_list='train_set.untampered_bulk_primary_cells_with_data',
-#            algo_config=BNC_LOG_CPM_LOGISTIC_L2_COND
-#        )
-#    run:
-#        commands = [
-#            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-#            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
-#                env_dir=ENV_DIR,
-#                exp_list='train_set.untampered_bulk_primary_cells_with_data',
-#                algo_config=BNC_LOG_CPM_LOGISTIC_L2_COND
-#            ),
-#            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
-#                env_dir=ENV_DIR,
-#                env_name=ENV_NAME,
-#                exp_list='train_set.untampered_bulk_primary_cells_with_data',
-#                algo_config=BNC_LOG_CPM_LOGISTIC_L2_COND,
-#                project_dir=PROJECT_DIR
-#            )
-#        ]
-#        for c in commands:
-#            shell(c)
-#        )
-
-rule train_bnc_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
+#####################################################################
+#  Alogirithm: TPR
+#  Weighted loss function: no
+#  Trained on: training set
+#####################################################################
+rule train_training_tpr:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
@@ -2471,7 +1303,7 @@ rule train_bnc_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
         '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
             env_dir=ENV_DIR,
             exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=BNC_LOG_CPM_LOGISTIC_L2_DOWNWEIGHT
+            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
         )
     run:
         commands = [
@@ -2479,21 +1311,66 @@ rule train_bnc_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
             'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
                 env_dir=ENV_DIR,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LOGISTIC_L2_DOWNWEIGHT
+                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LOGISTIC_L2_DOWNWEIGHT,
+                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL,
                 project_dir=PROJECT_DIR
             )
         ]
         for c in commands:
             shell(c)
 
+rule apply_test_tpr:
+    input:
+        test_exp_list = '{env_dir}/data/experiment_lists/{test_exp_list}/experiment_list.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        labelling_f = '{env_dir}/data/experiment_lists/{test_exp_list}/labelling.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+            env_dir=ENV_DIR,
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
+        )
+    output:
+        '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
+        )
+    run:
+        commands = [
+            'mkdir -p {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
+            ),
+            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {test_exp_list} -o {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                project_dir=PROJECT_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
+            )
+        ]
+        for c in commands:
+            shell(c)
 
-rule train_bnc_logistic_regression_l2_assert_ambig_neg_conditional_downweight_by_group:
+#####################################################################
+#  Alogirithm: TPR
+#  Weighted loss function: yes
+#  Trained on: training set
+#####################################################################
+rule train_training_tpr_downweight:
     input:
         '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
@@ -2507,7 +1384,7 @@ rule train_bnc_logistic_regression_l2_assert_ambig_neg_conditional_downweight_by
         '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
             env_dir=ENV_DIR,
             exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=BNC_LOG_CPM_LOGISTIC_L2_COND_DOWNDWIEGHT
+            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
         )
     run:
         commands = [
@@ -2515,18 +1392,202 @@ rule train_bnc_logistic_regression_l2_assert_ambig_neg_conditional_downweight_by
             'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
                 env_dir=ENV_DIR,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LOGISTIC_L2_COND_DOWNDWIEGHT
+                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
             ),
-            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LOGISTIC_L2_COND_DOWNDWIEGHT,
+                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT,
                 project_dir=PROJECT_DIR
             )
         ]
         for c in commands:
             shell(c)
+
+rule apply_test_tpr_downweight:
+    input:
+        test_exp_list = '{env_dir}/data/experiment_lists/{test_exp_list}/experiment_list.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        labelling_f = '{env_dir}/data/experiment_lists/{test_exp_list}/labelling.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+            env_dir=ENV_DIR,
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
+        )
+    output:
+        '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
+        )
+    run:
+        commands = [
+            'mkdir -p {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
+            ),
+            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {test_exp_list} -o {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                project_dir=PROJECT_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+
+#####################################################################
+#  Alogirithm: TPR
+#  Weighted loss function: yes
+#  Trained on: all samples
+#####################################################################
+rule train_all_tpr_downweight:
+    input:
+        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
+            env_dir=ENV_DIR,
+            exp_list='untampered_bulk_primary_cells_with_data'
+        ),
+        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
+            env_dir=ENV_DIR,
+            exp_list='untampered_bulk_primary_cells_with_data'
+        )
+    output:
+        '{env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}/model.pickle'.format(
+            env_dir=ENV_DIR,
+            exp_list='untampered_bulk_primary_cells_with_data',
+            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
+        )
+    run:
+        commands = [
+            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
+            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                exp_list='untampered_bulk_primary_cells_with_data',
+                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
+            ),
+            'python2.7 {project_dir}/learning/train_and_save.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_models/{algo_config} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts'.format(
+                env_dir=ENV_DIR,
+                env_name=ENV_NAME,
+                exp_list='untampered_bulk_primary_cells_with_data',
+                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT,
+                project_dir=PROJECT_DIR
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+rule apply_sc_tpr_downweight:
+    input:
+        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
+            env_dir=ENV_DIR,
+            exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
+        ),
+        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
+            env_dir=ENV_DIR,
+            exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
+        ),
+        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+            env_dir=ENV_DIR,
+            train_exp_list='untampered_bulk_primary_cells_with_data',
+            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
+        )
+    output:
+        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
+            env_dir=ENV_DIR,
+            exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
+            train_exp_list='untampered_bulk_primary_cells_with_data',
+            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
+        )
+    run:
+        commands = [
+            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
+                train_exp_list='untampered_bulk_primary_cells_with_data',
+                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
+            ),
+            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                project_dir=PROJECT_DIR,
+                exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
+                train_exp_list='untampered_bulk_primary_cells_with_data',
+                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+
+
+#####################################################################
+#  Alogirithm: 1NN
+#  Trained on: training_set
+#####################################################################
+rule train_and_apply_one_nn:
+    input:
+        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
+            env_dir=ENV_DIR,
+            exp_list='train_set.untampered_bulk_primary_cells_with_data'
+        ),
+        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
+            env_dir=ENV_DIR,
+            exp_list='test_set.untampered_bulk_primary_cells_with_data'
+        ),
+        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
+            env_dir=ENV_DIR,
+            exp_list='untampered_bulk_primary_cells_with_data'
+        )
+    output:
+        '{env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
+            env_dir=ENV_DIR,
+            test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+            algo_config=ONE_NN_LOG_CPM_CORRELATION
+        )
+    run:
+        commands = [
+            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
+            'mkdir -p {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=ONE_NN_LOG_CPM_CORRELATION
+            ),
+            'python2.7 {project_dir}/learning/train_and_apply.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {train_exp_list} {test_exp_list} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts -o {env_dir}/data/experiment_lists/{test_exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+                env_dir=ENV_DIR,
+                env_name=ENV_NAME,
+                project_dir=PROJECT_DIR,
+                test_exp_list='test_set.untampered_bulk_primary_cells_with_data',
+                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+                algo_config=ONE_NN_LOG_CPM_CORRELATION
+            )
+
+        ]
+        for c in commands:
+            shell(c)
+
+
+
+
+
+
+
+
+
+
+
+
 
 #####################################################################
 #   Apply the saved models to their respective test sests
@@ -2614,170 +1675,6 @@ rule apply_trained_model_naive_bayes_counts_assert_ambig_neg:
         for c in commands:
             shell(c)
 
-rule apply_trained_model_per_label_logistic_regression_l2_assert_ambig_neg:
-    input:
-        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data',
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
-            ),
-            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                project_dir=PROJECT_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule apply_trained_model_per_label_logistic_regression_l2_assert_ambig_neg_downweight:
-    input:
-        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL_DOWNWEIGHT 
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data',
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL_DOWNWEIGHT 
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL_DOWNWEIGHT 
-            ),
-            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                project_dir=PROJECT_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=PER_LABEL_LOG_CPM_LOGISTIC_L2_FULL_DOWNWEIGHT 
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule toy_apply_trained_model_cdc_logistic_regression_l2_assert_ambig_neg:
-    input:
-        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='toy'
-        ),
-        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='toy'
-        ),
-        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            train_exp_list='toy',
-            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='toy',
-            train_exp_list='toy',
-            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='toy',
-                train_exp_list='toy',
-                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-            ),
-            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                project_dir=PROJECT_DIR,
-                exp_list='toy',
-                train_exp_list='toy',
-                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule apply_trained_model_cdc_logistic_regression_l2_assert_ambig_neg:
-    input:
-        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data',
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-            ),
-            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                project_dir=PROJECT_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
 
 rule apply_trained_model_to_single_cell_cdc_logistic_regression_l2_assert_ambig_neg:
     input:
@@ -2815,47 +1712,6 @@ rule apply_trained_model_to_single_cell_cdc_logistic_regression_l2_assert_ambig_
                 exp_list='untampered_single_cell_primary_cells_with_data',
                 train_exp_list='untampered_bulk_primary_cells_with_data',
                 algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule apply_trained_model_cdc_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
-    input:
-        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data',
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-            ),
-            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                project_dir=PROJECT_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
             )
         ]
         for c in commands:
@@ -2902,48 +1758,8 @@ rule apply_trained_model_to_single_cell_cdc_logistic_regression_l2_assert_ambig_
         for c in commands:
             shell(c)
 
-rule apply_trained_model_to_bulk_restricted_single_cell_cdc_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
-    input:
-        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
-        ),
-        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
-        ),
-        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            train_exp_list='untampered_bulk_primary_cells_with_data',
-            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
-            train_exp_list='untampered_bulk_primary_cells_with_data',
-            algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
-                train_exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-            ),
-            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                project_dir=PROJECT_DIR,
-                exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
-                train_exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=CDC_LOG_CPM_LOGISTIC_L2_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-            )
-        ]
-        for c in commands:
-            shell(c)
 
-rule apply_trained_model_isotonic_logistic_regression_l2_assert_ambig_neg:
+rule apply_trained_model_isotonic_logistic_regression_l2_assert_ambig_downweight_psuedo:
     input:
         test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
             env_dir=ENV_DIR,
@@ -2956,14 +1772,14 @@ rule apply_trained_model_isotonic_logistic_regression_l2_assert_ambig_neg:
         model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
             env_dir=ENV_DIR,
             train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
+            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_PSUEDO_FULL_DOWNWEIGHT
         )
     output:
         '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
             env_dir=ENV_DIR,
             exp_list='test_set.untampered_bulk_primary_cells_with_data',
             train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
+            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_PSUEDO_FULL_DOWNWEIGHT
         )
     run:
         commands = [
@@ -2971,18 +1787,20 @@ rule apply_trained_model_isotonic_logistic_regression_l2_assert_ambig_neg:
                 env_dir=ENV_DIR,
                 exp_list='test_set.untampered_bulk_primary_cells_with_data',
                 train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
+                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_PSUEDO_FULL_DOWNWEIGHT
             ),
             'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
                 env_dir=ENV_DIR,
                 project_dir=PROJECT_DIR,
                 exp_list='test_set.untampered_bulk_primary_cells_with_data',
                 train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL
+                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_PSUEDO_FULL_DOWNWEIGHT
             )
         ]
         for c in commands:
             shell(c)
+
+
 
 
 
@@ -3028,47 +1846,6 @@ rule apply_trained_model_to_single_cell_isotonic_logistic_regression_l2_assert_a
             shell(c)
 
 
-rule apply_trained_model_isotonic_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
-    input:
-        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data',
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-            ),
-            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                project_dir=PROJECT_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-            )
-        ]
-        for c in commands:
-            shell(c)    
-
 rule apply_trained_model_to_single_cell_isotonic_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
     input:
         test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
@@ -3103,47 +1880,6 @@ rule apply_trained_model_to_single_cell_isotonic_logistic_regression_l2_assert_a
                 env_dir=ENV_DIR,
                 project_dir=PROJECT_DIR,
                 exp_list='untampered_single_cell_primary_cells_with_data',
-                train_exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule apply_trained_model_to_bulk_restricted_single_cell_isotonic_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
-    input:
-        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
-        ),
-        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
-        ),
-        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            train_exp_list='untampered_bulk_primary_cells_with_data',
-            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
-            train_exp_list='untampered_bulk_primary_cells_with_data',
-            algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
-                train_exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
-            ),
-            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                project_dir=PROJECT_DIR,
-                exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
                 train_exp_list='untampered_bulk_primary_cells_with_data',
                 algo_config=ISOTONIC_LOGISTIC_L2_LOG_CPM_ASSERT_AMBIG_NEG_FULL_DOWNWEIGHT
             )
@@ -3234,89 +1970,89 @@ rule apply_trained_model_to_single_cell_bnc_linear_svm_count_cond_prior_condor:
             shell(c)
 
 
-rule apply_trained_model_bnc_linear_svm_count_cond_prior_assert_ambig_neg_condor:
-    input:
-        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data',
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
-            ),
-            'python2.7 {project_dir}/learning/apply_saved_model_condorized/apply_saved_model_condor_primary.py {{input.model_f}} {env_dir} {exp_list} 5 -o {{output}} -c /scratch/mnbernstein/apply_trained_models_condor/{exp_list}.{algo_config}'.format(
-                env_dir=ENV_DIR,
-                project_dir=PROJECT_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
-            )
-        ]
-        for c in commands:
-            shell(c)
+#rule apply_trained_model_bnc_linear_svm_count_cond_prior_assert_ambig_neg_condor:
+#    input:
+#        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
+#            env_dir=ENV_DIR,
+#            exp_list='test_set.untampered_bulk_primary_cells_with_data'
+#        ),
+#        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
+#            env_dir=ENV_DIR,
+#            exp_list='test_set.untampered_bulk_primary_cells_with_data'
+#        ),
+#        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+#            env_dir=ENV_DIR,
+#            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+#            algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
+#        )
+#    output:
+#        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
+#            env_dir=ENV_DIR,
+#            exp_list='test_set.untampered_bulk_primary_cells_with_data',
+#            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+#            algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
+#        )
+#    run:
+#        commands = [
+#            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+#                env_dir=ENV_DIR,
+#                exp_list='test_set.untampered_bulk_primary_cells_with_data',
+#                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+#                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
+#            ),
+#            'python2.7 {project_dir}/learning/apply_saved_model_condorized/apply_saved_model_condor_primary.py {{input.model_f}} {env_dir} {exp_list} 5 -o {{output}} -c /scratch/mnbernstein/apply_trained_models_condor/{exp_list}.{algo_config}'.format(
+#                env_dir=ENV_DIR,
+#                project_dir=PROJECT_DIR,
+#                exp_list='test_set.untampered_bulk_primary_cells_with_data',
+#                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+#                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
+#            )
+#        ]
+#        for c in commands:
+#            shell(c)
 
 
 # TODO This is the fall back HERE
-rule apply_trained_model_bnc_linear_svm_count_cond_prior_assert_ambig_neg:
-    input:
-        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data',
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
-            ),
-            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                project_dir=PROJECT_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
-            )
-        ]
-        for c in commands:
-            shell(c)
+#rule apply_trained_model_bnc_linear_svm_count_cond_prior_assert_ambig_neg:
+#    input:
+#        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
+#            env_dir=ENV_DIR,
+#            exp_list='test_set.untampered_bulk_primary_cells_with_data'
+#        ),
+#        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
+#            env_dir=ENV_DIR,
+#            exp_list='test_set.untampered_bulk_primary_cells_with_data'
+#        ),
+#        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
+#            env_dir=ENV_DIR,
+#            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+#            algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
+#        )
+#    output:
+#        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
+#            env_dir=ENV_DIR,
+#            exp_list='test_set.untampered_bulk_primary_cells_with_data',
+#            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+#            algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
+#        )
+#    run:
+#        commands = [
+#            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+#                env_dir=ENV_DIR,
+#                exp_list='test_set.untampered_bulk_primary_cells_with_data',
+#                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+#                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
+#            ),
+#            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+#                env_dir=ENV_DIR,
+#                project_dir=PROJECT_DIR,
+#                exp_list='test_set.untampered_bulk_primary_cells_with_data',
+#                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
+#                algo_config=BNC_LOG_CPM_LINEAR_SVM_COND_ASSERT_AMBIG_NEG
+#            )
+#        ]
+#        for c in commands:
+#            shell(c)
 
 
 rule apply_trained_model_bnc_linear_svm_normal_count_cond_prior_condor:
@@ -3574,48 +2310,6 @@ rule apply_trained_model_bnc_logistic_bins_cond_prior_condor:
             shell(c)
 
    
-
-rule apply_trained_model_tpr_logistic_regression_l2_assert_ambig_neg:
-    input:
-        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data',
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-            ),
-            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                project_dir=PROJECT_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
 rule apply_trained_model_to_single_cell_tpr_logistic_regression_l2_assert_ambig_neg:
     input:
         test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
@@ -3652,48 +2346,6 @@ rule apply_trained_model_to_single_cell_tpr_logistic_regression_l2_assert_ambig_
                 exp_list='untampered_single_cell_primary_cells_with_data',
                 train_exp_list='untampered_bulk_primary_cells_with_data',
                 algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-
-rule apply_trained_model_tpr_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
-    input:
-        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data',
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-            ),
-            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                project_dir=PROJECT_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
             )
         ]
         for c in commands:
@@ -3740,89 +2392,7 @@ rule apply_trained_model_to_single_cell_tpr_logistic_regression_l2_assert_ambig_
         for c in commands:
             shell(c)
 
-rule apply_trained_model_to_bulk_restricted_single_cell_tpr_logistic_regression_l2_assert_ambig_neg_downweight_by_group:
-    input:
-        test_exp_list = '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
-        ),
-        labelling_f = '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
-        ),
-        model_f = '{env_dir}/data/experiment_lists/{train_exp_list}/trained_models/{algo_config}/model.pickle'.format(
-            env_dir=ENV_DIR,
-            train_exp_list='untampered_bulk_primary_cells_with_data',
-            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-        )
-    output:
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
-            train_exp_list='untampered_bulk_primary_cells_with_data',
-            algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-        )
-    run:
-        commands = [
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
-                train_exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-            ),
-            'python2.7 {project_dir}/learning/apply_saved_model.py {{input.model_f}} {env_dir} {exp_list} -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                project_dir=PROJECT_DIR,
-                exp_list='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk',
-                train_exp_list='untampered_bulk_primary_cells_with_data',
-                algo_config=TPR_LOGISTIC_L2_LOG_CPM_FULL_DOWNWEIGHT
-            )
-        ]
-        for c in commands:
-            shell(c)
 
-rule train_and_apply_one_nn:
-    input:
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='train_set.untampered_bulk_primary_cells_with_data'
-        ),
-        '{env_dir}/data/experiment_lists/{exp_list}/experiment_list.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data'
-        ),
-        '{env_dir}/data/experiment_lists/{exp_list}/labelling.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='untampered_bulk_primary_cells_with_data'
-        )
-    output: 
-        '{env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}/prediction_results.json'.format(
-            env_dir=ENV_DIR,
-            exp_list='test_set.untampered_bulk_primary_cells_with_data',
-            train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-            algo_config=ONE_NN_LOG_CPM_CORRELATION
-        )
-    run:
-        commands = [
-            'mkdir -p /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts',
-            'mkdir -p {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=ONE_NN_LOG_CPM_CORRELATION
-            ),
-            'python2.7 {project_dir}/learning/train_and_apply.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {train_exp_list} {exp_list} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
-                env_dir=ENV_DIR,
-                env_name=ENV_NAME,
-                project_dir=PROJECT_DIR,
-                exp_list='test_set.untampered_bulk_primary_cells_with_data',
-                train_exp_list='train_set.untampered_bulk_primary_cells_with_data',
-                algo_config=ONE_NN_LOG_CPM_CORRELATION
-            )
-
-        ]
-        for c in commands:
-            shell(c)
 
 rule train_and_apply_to_single_cell_one_nn:
     input:
@@ -3854,7 +2424,7 @@ rule train_and_apply_to_single_cell_one_nn:
                 train_exp_list='untampered_bulk_primary_cells_with_data',
                 algo_config=ONE_NN_LOG_CPM_CORRELATION
             ),
-            'python2.7 {project_dir}/learning/train_and_apply.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {train_exp_list} {exp_list} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+            'python2.7 {project_dir}/learning/train_and_apply.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {train_exp_list} {exp_list} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 project_dir=PROJECT_DIR,
@@ -3897,7 +2467,7 @@ rule train_and_apply_to_bulk_restricted_single_cell_one_nn:
                 train_exp_list='untampered_bulk_primary_cells_with_data',
                 algo_config=ONE_NN_LOG_CPM_CORRELATION
             ),
-            'python2.7 {project_dir}/learning/train_and_apply.py {project_dir}/learning/train_and_save_config/{env_name}/{algo_config}.json {env_dir} {train_exp_list} {exp_list} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
+            'python2.7 {project_dir}/learning/train_and_apply.py {project_dir}/learning/train_config/{env_name}/{algo_config}.json {env_dir} {train_exp_list} {exp_list} -r /scratch/mnbernstein/cell_type_phenotyping_tmp/train_and_save_artifacts -o {env_dir}/data/experiment_lists/{exp_list}/trained_on_another_experiment_list/{train_exp_list}/{algo_config}'.format(
                 env_dir=ENV_DIR,
                 env_name=ENV_NAME,
                 project_dir=PROJECT_DIR,
@@ -3911,112 +2481,8 @@ rule train_and_apply_to_bulk_restricted_single_cell_one_nn:
             shell(c)
 
 #####################################################################
-#   Compute data set summary statistics and create figures
-#####################################################################
-
-rule dim_reduc_overlayed_onto_ontology_figs:
-    input:
-        expand('{}/data/experiment_lists/{{exp_list}}/labelling.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS),
-        expand('{}/data/experiment_lists/{{exp_list}}/experiment_list.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS)
-    output:
-        expand('{}/data/experiment_lists/{{exp_list}}/summary_figures/pca_color_by_child_on_graph.pdf'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS)
-    run:
-        commands = expand(
-            'python2.7 {project_dir}/manage_data/data_set_summary/dim_reduc_color_by_child_term.py {env_dir} {{exp_list}} -o {env_dir}/data/experiment_lists/{{exp_list}}/summary_figures'.format(
-                project_dir=PROJECT_DIR,
-                env_dir=ENV_DIR
-            ),
-            exp_list=EXPERIMENT_LISTS
-        )
-        for c in commands:
-            shell(c)
-
-rule compute_num_expressed_genes:
-    input:
-        expand('{}/data/experiment_lists/{{exp_list}}/experiment_list.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS)
-    output:
-        expand('{}/data/experiment_lists/{{exp_list}}/summary_figures/experiment_to_num_genes_expressed.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS)
-    run:
-        commands = expand(
-            'python2.7 {project_dir}/manage_data/data_set_summary/compute_distr_num_genes_expressed.py {env_dir} {{exp_list}} -o {env_dir}/data/experiment_lists/{{exp_list}}/summary_figures'.format(
-                project_dir=PROJECT_DIR,
-                env_dir=ENV_DIR
-            ),
-            exp_list=EXPERIMENT_LISTS
-        )
-        for c in commands:
-            shell(c)
-
-rule num_expressed_genes_figs:
-    input:
-        expand('{}/data/experiment_lists/{{exp_list}}/summary_figures/experiment_to_num_genes_expressed.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS)
-    output:
-        expand('{}/data/experiment_lists/{{exp_list}}/summary_figures/num_genes_expressed_distribution.pdf'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS)
-    run:
-        commands = expand(
-            'python2.7 {project_dir}/manage_data/data_set_summary/analyze_distr_num_genes_expressed.py {{input}} -o {env_dir}/data/experiment_lists/{{exp_list}}/summary_figures'.format(
-                project_dir=PROJECT_DIR,
-                env_dir=ENV_DIR
-            ),
-            exp_list=EXPERIMENT_LISTS
-        )
-        for c in commands:
-            shell(c)
-
-
-
-#####################################################################
 #   Create the various experiment lists
 #####################################################################
-
-rule toy_single_cell_exp_list:
-    input:
-        '{}/data/data_set_metadata.json'.format(ENV_DIR)
-    output:
-        '{}/data/experiment_lists/toy_single_cell/experiment_list.json'.format(ENV_DIR)
-    run:
-        commands = [
-            'mkdir -p {}/data/experiment_lists/toy_single_cell/summary_figures'.format(ENV_DIR),
-            'mkdir -p {}/data/experiment_lists/toy_single_cell/leave_study_out_cv_results'.format(ENV_DIR),
-            'python2.7 {}/manage_data/create_experiment_lists/cell_type.metasra_1-4/toy_single_cell.py {{input}} -o {{output}}'.format(
-                PROJECT_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule toy_exp_list:
-    input:
-        '{}/data/data_set_metadata.json'.format(ENV_DIR)
-    output:
-        '{}/data/experiment_lists/toy/experiment_list.json'.format(ENV_DIR)
-    run:
-        commands = [
-            'mkdir -p {}/data/experiment_lists/toy/summary_figures'.format(ENV_DIR),
-            'mkdir -p {}/data/experiment_lists/toy/leave_study_out_cv_results'.format(ENV_DIR),
-            'python2.7 {}/manage_data/create_experiment_lists/cell_type.metasra_1-4/toy.py {{input}} -o {{output}}'.format(
-                PROJECT_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)
-
-rule test_exp_list:
-    input:
-        '{}/data/data_set_metadata.json'.format(ENV_DIR),
-        '{}/data/experiment_lists/untampered_bulk_primary_cells_with_data/experiment_list.json'.format(ENV_DIR)
-    output:
-        '{}/data/experiment_lists/test_experiments/experiment_list.json'.format(ENV_DIR)
-    run:
-        commands = [
-            'mkdir -p {}/data/experiment_lists/test_experiments/summary_figures'.format(ENV_DIR),
-            'mkdir -p {}/data/experiment_lists/test_experiments/leave_study_out_cv_results'.format(ENV_DIR),
-            'python2.7 {}/manage_data/create_experiment_lists/cell_type.metasra_1-4/test_experiments.py {{input}} -o {{output}}'.format(
-                PROJECT_DIR
-            )
-        ]
-        for c in commands:
-            shell(c)   
 
 rule train_test_experiment_lists:
     input:
@@ -4145,7 +2611,6 @@ rule all_exps_w_data_list:
         for c in commands:
             shell(c)
 
-
 #####################################################################
 #   Create the label graphs
 #####################################################################
@@ -4198,41 +2663,15 @@ rule generate_label_graphs_3:
         for c in commands:
             shell(c)
 
-rule generate_collapsed_label_graphs:
-    input:
-        expand('{}/data/experiment_lists/{{exp_list}}/experiment_list.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS)
-    output:
-        expand('{}/data/experiment_lists/{{exp_list}}/labelling_collapsed_dag.json'.format(ENV_DIR), exp_list=EXPERIMENT_LISTS)
-    run:
-        commands = expand(
-            'python2.7 {project_dir}/manage_data/labelize/label_data_collapsed_dag.py {env_dir} {{exp_list}} all_cell_types'.format(
-                project_dir=PROJECT_DIR,
-                env_dir=ENV_DIR
-            ),
-            exp_list=EXPERIMENT_LISTS
-        )
-        for c in commands:
-            shell(c)
 
 #####################################################################
 #   Use the annotation to create the data set file
 #####################################################################
 
-rule extra_data_set:
-    input:
-        '{}/data/data_set_metadata.json'.format(ENV_DIR)
-    output:
-        '{}/data/extra_data_set_metadata.json'.format(ENV_DIR)
-    shell:
-        '{project_dir}/manage_data/create_extra_experiment_lists/create_extra_dataset.py {env_dir} -o {{output}}'.format(
-            project_dir=PROJECT_DIR,
-            env_dir=ENV_DIR
-        ) 
-
 rule apply_annotation:
     input:
-        '{}/manage_data/annotations/from.cell_type_primary_cells_v1-4/cell_type_primary_cells_v1-4.annot_5-1.experiment_centric.json'.format(PROJECT_DIR)        
+        '{}/manage_data/annotations/from.cell_type_primary_cells_v1-4/cell_type_primary_cells_v1-4.annot_6.experiment_centric.json'.format(PROJECT_DIR)        
     output:
         '{}/data/data_set_metadata.json'.format(ENV_DIR) 
     shell:
-        'python2.7 {}/manage_data/annotations/from.cell_type_primary_cells_v1-4/apply_annot.metasra_v1-4.annot_5-1.experiment_centric.py'.format(PROJECT_DIR) 
+        'python2.7 {}/manage_data/annotations/from.cell_type_primary_cells_v1-4/apply_annot.metasra_v1-4.annot_6.experiment_centric.py'.format(PROJECT_DIR) 
