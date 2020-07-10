@@ -1,0 +1,4 @@
+Building DAG of jobs...
+MissingInputException in line 27 of /ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/Snakefile:
+Missing input files for rule apply_annotation:
+/ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/cell_type_primary_cells_v1-4.annot_9.experiment_centric.json

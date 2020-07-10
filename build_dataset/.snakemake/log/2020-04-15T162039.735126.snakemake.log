@@ -1,0 +1,17 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	untampered_single_cell_primary_cells_with_data_list
+	1
+
+rule untampered_single_cell_primary_cells_with_data_list:
+    input: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/annotation.json
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/experiment_sets/untampered_single_cell_primary_cells_with_data.json
+    jobid: 0
+
+Finished job 0.
+1 of 1 steps (100%) done
+Complete log: /ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/.snakemake/log/2020-04-15T162039.735126.snakemake.log

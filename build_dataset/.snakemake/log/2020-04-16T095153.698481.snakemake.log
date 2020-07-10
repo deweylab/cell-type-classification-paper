@@ -1,0 +1,17 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	build_train_test_experiment_log_tpm_dataset
+	1
+
+rule build_train_test_experiment_log_tpm_dataset:
+    input: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/experiment_sets/train_set.untampered_bulk_primary_cells_with_data.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/experiment_sets/test_set.untampered_bulk_primary_cells_with_data.json
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/datasets/train_set.untampered_bulk_primary_cells_with_data/log_tpm.h5, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/datasets/test_set.untampered_bulk_primary_cells_with_data/log_tpm.h5
+    jobid: 0
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/.snakemake/log/2020-04-16T095153.698481.snakemake.log

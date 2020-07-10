@@ -1,0 +1,19 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	metadata_train_test_experiment_sets
+	1
+
+[Mon Apr 20 13:13:35 2020]
+rule metadata_train_test_experiment_sets:
+    input: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/experiment_sets/train_set.untampered_bulk_primary_cells_with_data.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/experiment_sets/test_set.untampered_bulk_primary_cells_with_data.json
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/datasets/train_set.untampered_bulk_primary_cells_with_data/experiment_to_study.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/datasets/test_set.untampered_bulk_primary_cells_with_data/experiment_to_study.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/datasets/train_set.untampered_bulk_primary_cells_with_data/experiment_to_tags.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/datasets/test_set.untampered_bulk_primary_cells_with_data/experiment_to_tags.json
+    jobid: 0
+
+[Mon Apr 20 13:13:38 2020]
+Finished job 0.
+1 of 1 steps (100%) done
+Complete log: /ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/.snakemake/log/2020-04-20T131335.635366.snakemake.log

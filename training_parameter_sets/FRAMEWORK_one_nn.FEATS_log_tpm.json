@@ -1,0 +1,9 @@
+{
+    "algorithm": "onn",
+    "params": {
+        "metric": "correlation"
+    },
+    "features": "log_tpm",
+    "dim_reduct_config_file": null,
+    "description": "one nearest neighbor with correlation as distance metric"
+}

@@ -1,0 +1,17 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	build_aggregate_by_cluster_leiden_1_0_untampered_single_cell_primary_cells_with_data_cell_types_in_bulk
+	1
+
+[Sun May 10 16:15:53 2020]
+rule build_aggregate_by_cluster_leiden_1_0_untampered_single_cell_primary_cells_with_data_cell_types_in_bulk:
+    input: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_9/experiment_sets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_9/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/log_tpm.h5
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_9/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/aggregate_by_cluster_leiden_1_0_log_tpm.h5
+    jobid: 0
+
+Terminating processes on user request, this might take some time.
+Cancelling snakemake on user request.

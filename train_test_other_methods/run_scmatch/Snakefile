@@ -1,0 +1,336 @@
+#
+
+CONFIG_F = "../../config.json"
+configfile: CONFIG_F
+
+##### 10x data
+rule convert_10x_data_to_10x_format:
+    input:
+        '{}/datasets/zheng_10x_PBMC_2000_cells_per_type/counts.h5'.format(config['env_dir'])
+    output:
+        '{}/datasets/zheng_10x_PBMC_2000_cells_per_type/counts.10x/matrix.mtx'.format(config['env_dir']),
+        '{}/datasets/zheng_10x_PBMC_2000_cells_per_type/counts.10x/barcodes.tsv'.format(config['env_dir']),
+        '{}/datasets/zheng_10x_PBMC_2000_cells_per_type/counts.10x/genes.tsv'.format(config['env_dir'])
+    run:
+        commands=[
+            'mkdir -p {}/datasets/zheng_10x_PBMC_2000_cells_per_type/counts.10x'.format(config['env_dir']),
+            'python convert_dataset_to_10x_format.py {env}/datasets/zheng_10x_PBMC_2000_cells_per_type -o {env}/datasets/zheng_10x_PBMC_2000_cells_per_type/counts.10x'.format(
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+
+rule run_scMatch_spearman:
+    input:
+        '{}/datasets/zheng_10x_PBMC_2000_cells_per_type/counts.10x/matrix.mtx'.format(config['env_dir']),
+        '{}/datasets/zheng_10x_PBMC_2000_cells_per_type/counts.10x/barcodes.tsv'.format(config['env_dir']),
+        '{}/datasets/zheng_10x_PBMC_2000_cells_per_type/counts.10x/genes.tsv'.format(config['env_dir'])
+    output:
+        '{}/datasets/zheng_10x_PBMC_2000_cells_per_type/counts.10x/annotation_result_keep_all_genes/human_Spearman_top_ann.csv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'python {src}/scMatch.py --testMethod s --refDS {db} --dFormat 10x --testDS {env}/datasets/zheng_10x_PBMC_2000_cells_per_type/counts.10x --coreNum 5'.format(
+                src=config['other_method_configs']['scmatch']['src'],
+                db=config['other_method_configs']['scmatch']['db'],
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+
+rule move_scMatch_results:
+    input:
+        '{}/datasets/zheng_10x_PBMC_2000_cells_per_type/counts.10x/annotation_result_keep_all_genes/human_Spearman_top_ann.csv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/scMatch/zheng_10x_PBMC_2000_cells_per_type/annotation_result_keep_all_genes/human_Spearman_top_ann.csv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'mkdir -p {}/results/other_methods/scMatch/zheng_10x_PBMC_2000_cells_per_type'.format( 
+                config['env_dir']
+            ),
+            'mv {env}/datasets/zheng_10x_PBMC_2000_cells_per_type/counts.10x/annotation_result_keep_all_genes {env}/results/other_methods/scMatch/zheng_10x_PBMC_2000_cells_per_type'.format(
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+
+rule convert_scMatch_results:
+    input:
+        '{}/results/other_methods/scMatch/zheng_10x_PBMC_2000_cells_per_type/annotation_result_keep_all_genes/human_Spearman_top_ann.csv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/scMatch/zheng_10x_PBMC_2000_cells_per_type/classification_results.tsv'.format(
+            config['env_dir']
+        ),
+        '{}/results/other_methods/scMatch/zheng_10x_PBMC_2000_cells_per_type/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'python convert_scMatch_result_to_term_predictions.py {{input}} {scmatch_db}/human_samples_oto.insert_missing.txt -o {env}/results/other_methods/scMatch/zheng_10x_PBMC_2000_cells_per_type'.format( # I AM HERE
+                env=config['env_dir'],
+                scmatch_db=config['other_method_configs']['scmatch']['db']
+            ) 
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+
+rule evaluate_binary:
+    input:
+        '{}/results/other_methods/scMatch/zheng_10x_PBMC_2000_cells_per_type/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/scMatch/zheng_10x_PBMC_2000_cells_per_type/evaluation/binary_cell_type_metrics.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands = [
+            'mkdir -p {}/results/other_methods/scMatch/zheng_10x_PBMC_2000_cells_per_type/evaluation/'.format(
+                config['env_dir']
+            ),
+            'python {src}/evaluate/evaluate_method_cell_type_centric_binary.py -b -c "scMatch" {{input}} {env}/datasets/{dataset}/labels.json {env}/datasets/{dataset}/labels.json -o {{output}}'.format(
+                src=config['cello_dev'],
+                env=config['env_dir'],
+                dataset='zheng_10x_PBMC_2000_cells_per_type'
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+######## non-10x data
+
+rule convert_non_10x_data_to_10x_format:
+    input:
+        '{}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/counts.h5'.format(config['env_dir'])
+    output:
+        '{}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/counts.10x/matrix.mtx'.format(config['env_dir']),
+        '{}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/counts.10x/barcodes.tsv'.format(config['env_dir']),
+        '{}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/counts.10x/genes.tsv'.format(config['env_dir'])
+    run:
+        commands=[
+            'mkdir -p {}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/counts.10x'.format(config['env_dir']),
+            'python convert_dataset_to_10x_format.py {env}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk -o {env}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/counts.10x'.format(
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+rule run_scMatch_spearman_non_10x:
+    input:
+        '{}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/counts.10x/matrix.mtx'.format(config['env_dir']),
+        '{}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/counts.10x/barcodes.tsv'.format(config['env_dir']),
+        '{}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/counts.10x/genes.tsv'.format(config['env_dir'])
+    output:
+        '{}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/counts.10x/annotation_result_keep_all_genes/human_Spearman_top_ann.csv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'python {src}/scMatch.py --testMethod s --refDS {db} --dFormat 10x --testDS {env}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/counts.10x --coreNum 5'.format(
+                src=config['other_method_configs']['scmatch']['src'],
+                db=config['other_method_configs']['scmatch']['db'],
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+rule move_scMatch_results_non_10x:
+    input:
+        '{}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/counts.10x/annotation_result_keep_all_genes/human_Spearman_top_ann.csv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/annotation_result_keep_all_genes/human_Spearman_top_ann.csv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'mkdir -p {}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'.format(
+                config['env_dir']
+            ),
+            'mv {env}/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/counts.10x/annotation_result_keep_all_genes {env}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'.format(
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+
+rule convert_scMatch_results_non_10x:
+    input:
+        '{}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/annotation_result_keep_all_genes/human_Spearman_top_ann.csv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/classification_results.tsv'.format(
+            config['env_dir']
+        ),
+        '{}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'python convert_scMatch_result_to_term_predictions.py {{input}}  {scmatch_db}/human_samples_oto.insert_missing.txt  -o {env}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'.format(
+                env=config['env_dir'],
+                scmatch_db=config['other_method_configs']['scmatch']['db']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+
+rule evaluate_binary_non_10x:
+    input:
+        '{}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/evaluation/binary_cell_type_metrics.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands = [
+            'mkdir -p {}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/evaluation/'.format(
+                config['env_dir']
+            ),
+            'python {src}/evaluate/evaluate_method_cell_type_centric_binary.py -b -c "scMatch" {{input}} {env}/datasets/{dataset}/labels.json {env}/datasets/{dataset}/labels.json -o {{output}}'.format(
+                src=config['cello_dev'],
+                env=config['env_dir'],
+                dataset='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+######## all non-10x data
+
+rule convert_all_non_10x_data_to_10x_format:
+    input:
+        '{}/datasets/untampered_single_cell_primary_cells_with_data/counts.h5'.format(config['env_dir'])
+    output:
+        '{}/datasets/untampered_single_cell_primary_cells_with_data/counts.10x/matrix.mtx'.format(config['env_dir']),
+        '{}/datasets/untampered_single_cell_primary_cells_with_data/counts.10x/barcodes.tsv'.format(config['env_dir']),
+        '{}/datasets/untampered_single_cell_primary_cells_with_data/counts.10x/genes.tsv'.format(config['env_dir'])
+    run:
+        commands=[
+            'mkdir -p {}/datasets/untampered_single_cell_primary_cells_with_data/counts.10x'.format(config['env_dir']),
+            'python convert_dataset_to_10x_format.py {env}/datasets/untampered_single_cell_primary_cells_with_data -o {env}/datasets/untampered_single_cell_primary_cells_with_data/counts.10x'.format(
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+rule run_scMatch_spearman_all_non_10x:
+    input:
+        '{}/datasets/untampered_single_cell_primary_cells_with_data/counts.10x/matrix.mtx'.format(config['env_dir']),
+        '{}/datasets/untampered_single_cell_primary_cells_with_data/counts.10x/barcodes.tsv'.format(config['env_dir']),
+        '{}/datasets/untampered_single_cell_primary_cells_with_data/counts.10x/genes.tsv'.format(config['env_dir'])
+    output:
+        '{}/datasets/untampered_single_cell_primary_cells_with_data/counts.10x/annotation_result_keep_all_genes/human_Spearman_top_ann.csv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'python {src}/scMatch.py --testMethod s --refDS {db} --dFormat 10x --testDS {env}/datasets/untampered_single_cell_primary_cells_with_data/counts.10x --coreNum 5'.format(
+                src=config['other_method_configs']['scmatch']['src'],
+                db=config['other_method_configs']['scmatch']['db'],
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+rule move_scMatch_results_all_non_10x:
+    input:
+        '{}/datasets/untampered_single_cell_primary_cells_with_data/counts.10x/annotation_result_keep_all_genes/human_Spearman_top_ann.csv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data/annotation_result_keep_all_genes/human_Spearman_top_ann.csv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'mkdir -p {}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data'.format(
+                config['env_dir']
+            ),
+            'mv {env}/datasets/untampered_single_cell_primary_cells_with_data/counts.10x/annotation_result_keep_all_genes {env}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data'.format(
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+rule convert_scMatch_results_all_non_10x:
+    input:
+        '{}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data/annotation_result_keep_all_genes/human_Spearman_top_ann.csv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data/classification_results.tsv'.format(
+            config['env_dir']
+        ),
+        '{}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'python convert_scMatch_result_to_term_predictions.py {{input}}  {scmatch_db}/human_samples_oto.insert_missing.txt  -o {env}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data'.format(
+                env=config['env_dir'],
+                scmatch_db=config['other_method_configs']['scmatch']['db']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+rule evaluate_binary_all_non_10x:
+    input:
+        '{}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data/evaluation/binary_cell_type_metrics.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands = [
+            'mkdir -p {}/results/other_methods/scMatch/untampered_single_cell_primary_cells_with_data/evaluation/'.format(
+                config['env_dir']
+            ),
+            'python {src}/evaluate/evaluate_method_cell_type_centric_binary.py -b -c "scMatch" {{input}} {env}/datasets/{dataset}/labels.json {env}/datasets/{dataset}/labels.json -o {{output}}'.format(
+                src=config['cello_dev'],
+                env=config['env_dir'],
+                dataset='untampered_single_cell_primary_cells_with_data'
+            )
+        ]
+        for c in commands:
+            shell(c)

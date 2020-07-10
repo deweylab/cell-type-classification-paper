@@ -1,0 +1,4 @@
+Building DAG of jobs...
+MissingInputException in line 222 of /ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/Snakefile:
+Missing input files for rule select_untampered_single_cell_primary_cells_with_data_cell_types_in_bulk:
+/tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/datasets/untampered_single_cell_primary_cells_with_data/labels.json

@@ -1,0 +1,17 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	metadata_10x
+	1
+
+rule metadata_10x:
+    input: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/datasets/zheng_10x_PBMC_2000_cells_per_type/log_cpm.h5
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/datasets/zheng_10x_PBMC_2000_cells_per_type/experiment_to_study.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_8/datasets/zheng_10x_PBMC_2000_cells_per_type/experiment_to_tags.json
+    jobid: 0
+
+Finished job 0.
+1 of 1 steps (100%) done
+Complete log: /ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/.snakemake/log/2020-04-29T103257.780701.snakemake.log

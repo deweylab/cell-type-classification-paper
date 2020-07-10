@@ -1,0 +1,327 @@
+#
+
+CONFIG_F = "../../config.json"
+configfile: CONFIG_F
+
+####### 10x results
+rule convert_SingleR_BlueprintEncode_results:
+    input:
+        '{}/results/other_methods/SingleR.BlueprintEncode/zheng_10x_PBMC_2000_cells_per_type/SingleR.BlueprintEncode.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.BlueprintEncode/zheng_10x_PBMC_2000_cells_per_type/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'python convert_SingleR_result_to_term_predictions.py {{input}} -o {env}/results/other_methods/SingleR.BlueprintEncode/zheng_10x_PBMC_2000_cells_per_type'.format(
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+
+rule evaluate_binary_BlueprintEncode:
+    input:
+        '{}/results/other_methods/SingleR.BlueprintEncode/zheng_10x_PBMC_2000_cells_per_type/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )    
+    output:
+        '{}/results/other_methods/SingleR.BlueprintEncode/zheng_10x_PBMC_2000_cells_per_type/evaluation/binary_cell_type_metrics.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands = [
+            'mkdir -p {}/results/other_methods/SingleR.BlueprintEncode/zheng_10x_PBMC_2000_cells_per_type/evaluation/'.format(
+                config['env_dir']
+            ),
+            'python {src}/evaluate/evaluate_method_cell_type_centric_binary.py -b -c "SingleR" {{input}} {env}/datasets/{dataset}/labels.json {env}/datasets/{dataset}/labels.json -o {env}/results/other_methods/SingleR.BlueprintEncode/zheng_10x_PBMC_2000_cells_per_type/evaluation/'.format(
+                src=config['cello_dev'],
+                env=config['env_dir'],
+                dataset='zheng_10x_PBMC_2000_cells_per_type'
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+rule evaluate_binary_BlueprintEncode_only_in_training_set:
+    input:
+        '{}/results/other_methods/SingleR.BlueprintEncode/zheng_10x_PBMC_2000_cells_per_type/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.BlueprintEncode/zheng_10x_PBMC_2000_cells_per_type/evaluation/binary_cell_type_metrics.only_training.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands = [
+            'mkdir -p {}/results/other_methods/SingleR.BlueprintEncode/zheng_10x_PBMC_2000_cells_per_type/evaluation/'.format(
+                config['env_dir']
+            ),
+            'python {src}/evaluate/evaluate_method_cell_type_centric_binary.py -c "SingleR" {{input}} {env}/datasets/{dataset}/labels.json {env}/datasets/{dataset}/labels.json -o {{output}}'.format(
+                src=config['cello_dev'],
+                env=config['env_dir'],
+                dataset='zheng_10x_PBMC_2000_cells_per_type'
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+rule convert_SingleR_HCA_results:
+    input:
+        '{}/results/other_methods/SingleR.HCA/zheng_10x_PBMC_2000_cells_per_type/SingleR.HCA.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.HCA/zheng_10x_PBMC_2000_cells_per_type/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'python convert_SingleR_result_to_term_predictions.py {{input}} -o {env}/results/other_methods/SingleR.HCA/zheng_10x_PBMC_2000_cells_per_type'.format(
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+rule evaluate_binary_HCA:
+    input:
+        '{}/results/other_methods/SingleR.HCA/zheng_10x_PBMC_2000_cells_per_type/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.HCA/zheng_10x_PBMC_2000_cells_per_type/evaluation/binary_cell_type_metrics.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands = [
+            'mkdir -p {}/results/other_methods/SingleR.HCA/zheng_10x_PBMC_2000_cells_per_type/evaluation/'.format(
+                config['env_dir']
+            ),
+            'python {src}/evaluate/evaluate_method_cell_type_centric_binary.py -b -c "SingleR" {{input}} {env}/datasets/{dataset}/labels.json {env}/datasets/{dataset}/labels.json -o {env}/results/other_methods/SingleR.HCA/zheng_10x_PBMC_2000_cells_per_type/evaluation/'.format(
+                src=config['cello_dev'],
+                env=config['env_dir'],
+                dataset='zheng_10x_PBMC_2000_cells_per_type'
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+# Monaco
+rule convert_SingleR_Monaco_results:
+    input:
+        '{}/results/other_methods/SingleR.Monaco/zheng_10x_PBMC_2000_cells_per_type/SingleR.Monaco.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.Monaco/zheng_10x_PBMC_2000_cells_per_type/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'python convert_SingleR_result_to_term_predictions.py {{input}} -o {env}/results/other_methods/SingleR.Monaco/zheng_10x_PBMC_2000_cells_per_type'.format(
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+rule evaluate_binary_Monaco:
+    input:
+        '{}/results/other_methods/SingleR.Monaco/zheng_10x_PBMC_2000_cells_per_type/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.Monaco/zheng_10x_PBMC_2000_cells_per_type/evaluation/binary_cell_type_metrics.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands = [
+            'mkdir -p {}/results/other_methods/SingleR.Monaco/zheng_10x_PBMC_2000_cells_per_type/evaluation/'.format(
+                config['env_dir']
+            ),
+            'python {src}/evaluate/evaluate_method_cell_type_centric_binary.py -b -c "SingleR" {{input}} {env}/datasets/{dataset}/labels.json {env}/datasets/{dataset}/labels.json -o {env}/results/other_methods/SingleR.Monaco/zheng_10x_PBMC_2000_cells_per_type/evaluation/'.format(
+                src=config['cello_dev'],
+                env=config['env_dir'],
+                dataset='zheng_10x_PBMC_2000_cells_per_type'
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+########### non-10x results
+rule convert_SingleR_BlueprintEncode_non_10x:
+    input:
+        '{}/results/other_methods/SingleR.BlueprintEncode/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/SingleR.BlueprintEncode.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.BlueprintEncode/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'python convert_SingleR_result_to_term_predictions.py {{input}} -o {env}/results/other_methods/SingleR.BlueprintEncode/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'.format(
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+rule evaluate_binary_BlueprintEncode_non_10x:
+    input:
+        '{}/results/other_methods/SingleR.BlueprintEncode/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.BlueprintEncode/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/evaluation/binary_cell_type_metrics.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands = [
+            'mkdir -p {}/results/other_methods/SingleR.BlueprintEncode/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/evaluation/'.format(
+                config['env_dir']
+            ),
+            'python {src}/evaluate/evaluate_method_cell_type_centric_binary.py -b -c "SingleR" {{input}} {env}/datasets/{dataset}/labels.json {env}/datasets/{dataset}/labels.json -o {{output}}'.format(
+                src=config['cello_dev'],
+                env=config['env_dir'],
+                dataset='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+rule convert_SingleR_HCA_non_10x:
+    input:
+        '{}/results/other_methods/SingleR.HCA/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/SingleR.HCA.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.HCA/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'python convert_SingleR_result_to_term_predictions.py {{input}} -o {env}/results/other_methods/SingleR.HCA/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'.format(
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+rule evaluate_binary_HCA_non_10x:
+    input:
+        '{}/results/other_methods/SingleR.HCA/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.HCA/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/evaluation/binary_cell_type_metrics.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands = [
+            'mkdir -p {}/results/other_methods/SingleR.HCA/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/evaluation/'.format(
+                config['env_dir']
+            ),
+            'python {src}/evaluate/evaluate_method_cell_type_centric_binary.py -b -c "SingleR" {{input}} {env}/datasets/{dataset}/labels.json {env}/datasets/{dataset}/labels.json -o {{output}}'.format(
+                src=config['cello_dev'],
+                env=config['env_dir'],
+                dataset='untampered_single_cell_primary_cells_with_data_cell_types_in_bulk'
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+####### all single-cell non-10x
+
+rule convert_SingleR_BlueprintEncode_all_non_10x:
+    input:
+        '{}/results/other_methods/SingleR.BlueprintEncode/untampered_single_cell_primary_cells_with_data/SingleR.BlueprintEncode.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.BlueprintEncode/untampered_single_cell_primary_cells_with_data/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'python convert_SingleR_result_to_term_predictions.py {{input}} -o {env}/results/other_methods/SingleR.BlueprintEncode/untampered_single_cell_primary_cells_with_data'.format(
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+rule evaluate_binary_BlueprintEncode_all_non_10x:
+    input:
+        '{}/results/other_methods/SingleR.BlueprintEncode/untampered_single_cell_primary_cells_with_data/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.BlueprintEncode/untampered_single_cell_primary_cells_with_data/evaluation/binary_cell_type_metrics.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands = [
+            'mkdir -p {}/results/other_methods/SingleR.BlueprintEncode/untampered_single_cell_primary_cells_with_data/evaluation/'.format(
+                config['env_dir']
+            ),
+            'python {src}/evaluate/evaluate_method_cell_type_centric_binary.py -b -c "SingleR" {{input}} {env}/datasets/{dataset}/labels.json {env}/datasets/{dataset}/labels.json -o {{output}}'.format(
+                src=config['cello_dev'],
+                env=config['env_dir'],
+                dataset='untampered_single_cell_primary_cells_with_data'
+            )
+        ]
+        for c in commands:
+            shell(c)
+
+rule convert_SingleR_HCA_all_non_10x:
+    input:
+        '{}/results/other_methods/SingleR.HCA/untampered_single_cell_primary_cells_with_data/SingleR.HCA.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.HCA/untampered_single_cell_primary_cells_with_data/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands=[
+            'python convert_SingleR_result_to_term_predictions.py {{input}} -o {env}/results/other_methods/SingleR.HCA/untampered_single_cell_primary_cells_with_data'.format(
+                env=config['env_dir']
+            )
+        ]
+        for c in commands:
+            shell('echo "{}"'.format(c))
+            shell(c)
+
+rule evaluate_binary_HCA_all_non_10x:
+    input:
+        '{}/results/other_methods/SingleR.HCA/untampered_single_cell_primary_cells_with_data/binary_classification_results.tsv'.format(
+            config['env_dir']
+        )
+    output:
+        '{}/results/other_methods/SingleR.HCA/untampered_single_cell_primary_cells_with_data/evaluation/binary_cell_type_metrics.tsv'.format(
+            config['env_dir']
+        )
+    run:
+        commands = [
+            'mkdir -p {}/results/other_methods/SingleR.HCA/untampered_single_cell_primary_cells_with_data/evaluation/'.format(
+                config['env_dir']
+            ),
+            'python {src}/evaluate/evaluate_method_cell_type_centric_binary.py -b -c "SingleR" {{input}} {env}/datasets/{dataset}/labels.json {env}/datasets/{dataset}/labels.json -o {{output}}'.format(
+                src=config['cello_dev'],
+                env=config['env_dir'],
+                dataset='untampered_single_cell_primary_cells_with_data'
+            )
+        ]
+        for c in commands:
+            shell(c)

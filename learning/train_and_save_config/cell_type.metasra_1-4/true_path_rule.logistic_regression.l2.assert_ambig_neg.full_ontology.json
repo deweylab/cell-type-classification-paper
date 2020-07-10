@@ -1,8 +1,0 @@
-{
-    "experiment_name": "true_path_rule.logistic_regression.l2",
-    "features": "kallisto_gene_log_cpm",
-    "algo_config_file": "true_path_rule.logistic_regression.l2.assert_ambig_neg.json",
-    "dim_reduct_config_file": null,
-    "collapse_ontology": false
-}
-

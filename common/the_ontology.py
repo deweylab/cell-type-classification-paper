@@ -1,4 +1,4 @@
-from onto_lib import load_ontology
+from onto_lib_py3 import load_ontology
 
 GO_ONT_CONFIG_ID = '18'
 UNIT_OG_ID = '7'
@@ -48,6 +48,41 @@ ONTO_PATCH = {
         {
             "source_term": "CL:0000017",    # spermatocyte
             "target_term": "CL:0011115",    # precursor cell
+            "edge_type": "is_a"
+        },
+        {
+            "source_term": "CL:0000235",    # macrophage
+            "target_term": "CL:0000842",    # mononuclear cell
+            "edge_type": "is_a"
+        },
+        {
+            "source_term": "CL:0000235",    # macrophage
+            "target_term": "CL:0000145",    # professional antigen presenting cell
+            "edge_type": "is_a"
+        },
+        {
+            "source_term": "CL:0000451",    # dendritic cell
+            "target_term": "CL:0000145",    # professional antigen presenting cell
+            "edge_type": "is_a"
+        },
+        {
+            "source_term": "CL:0000236",    # B cell
+            "target_term": "CL:0000145",    # professional antigen presenting cell
+            "edge_type": "is_a"
+        },
+        {
+            "source_term": "CL:0002371",    # somatic cell
+            "target_term": "CL:0000255",    # eukaryotic cell
+            "edge_type": "is_a"
+        },
+        {
+            "source_term": "CL:0000163",    # endocrine cell
+            "target_term": "CL:0002371",    # somatic cell
+            "edge_type": "is_a"
+        },
+        {
+            "source_term": "CL:0008024",    # pancreatic endocrine cell
+            "target_term": "CL:0000164",    # enteroendocrine cell
             "edge_type": "is_a"
         }
     ]
@@ -99,7 +134,7 @@ def main():
     #print og.id_to_term['CL:0000542']
 
     og = go_ontology()
-    print og.id_to_term['GO:0002312']
+    print(og.id_to_term['GO:0002312'])
 
 if __name__ == "__main__":
     main()

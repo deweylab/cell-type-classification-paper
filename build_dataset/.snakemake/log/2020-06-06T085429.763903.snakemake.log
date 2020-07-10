@@ -1,0 +1,19 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	metadata_10x_pure_clusters
+	1
+
+[Sat Jun  6 08:54:30 2020]
+rule metadata_10x_pure_clusters:
+    input: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/datasets/zheng_10x_PBMC_2000_cells_per_type.pure_clusters/log_cpm.h5
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/datasets/zheng_10x_PBMC_2000_cells_per_type.pure_clusters/experiment_to_study.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/datasets/zheng_10x_PBMC_2000_cells_per_type.pure_clusters/experiment_to_tags.json
+    jobid: 0
+
+[Sat Jun  6 08:54:33 2020]
+Finished job 0.
+1 of 1 steps (100%) done
+Complete log: /ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/.snakemake/log/2020-06-06T085429.763903.snakemake.log

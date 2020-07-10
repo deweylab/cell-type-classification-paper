@@ -1,0 +1,41 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	build_train_test_experiment_log_tpm_dataset
+	1	select_all_untampered_bulk_exps_w_data
+	1	select_train_test_experiment_sets
+	3
+
+[Mon May  4 13:25:19 2020]
+rule select_all_untampered_bulk_exps_w_data:
+    input: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_9/annotation.json
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_9/experiment_sets/all_untampered_bulk_primary_cells_with_data.json
+    jobid: 3
+
+[Mon May  4 13:29:47 2020]
+Finished job 3.
+1 of 3 steps (33%) done
+
+[Mon May  4 13:29:47 2020]
+rule select_train_test_experiment_sets:
+    input: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_9/annotation.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_9/experiment_sets/all_untampered_bulk_primary_cells_with_data.json
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_9/experiment_sets/train_set.untampered_bulk_primary_cells_with_data.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_9/experiment_sets/test_set.untampered_bulk_primary_cells_with_data.json
+    jobid: 1
+
+[Mon May  4 13:29:56 2020]
+Finished job 1.
+2 of 3 steps (67%) done
+
+[Mon May  4 13:29:56 2020]
+rule build_train_test_experiment_log_tpm_dataset:
+    input: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_9/experiment_sets/train_set.untampered_bulk_primary_cells_with_data.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_9/experiment_sets/test_set.untampered_bulk_primary_cells_with_data.json
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_9/datasets/train_set.untampered_bulk_primary_cells_with_data/log_tpm.h5, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_9/datasets/test_set.untampered_bulk_primary_cells_with_data/log_tpm.h5
+    jobid: 0
+
+[Mon May  4 13:55:29 2020]
+Finished job 0.
+3 of 3 steps (100%) done
+Complete log: /ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/.snakemake/log/2020-05-04T132519.002957.snakemake.log

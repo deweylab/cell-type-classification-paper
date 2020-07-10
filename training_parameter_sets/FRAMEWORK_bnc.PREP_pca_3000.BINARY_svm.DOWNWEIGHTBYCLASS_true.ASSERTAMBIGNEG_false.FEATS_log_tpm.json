@@ -1,0 +1,17 @@
+{
+    "algorithm": "bnc",
+    "params": {
+        "assert_ambig_neg": false, 
+        "binary_classifier_algorithm": "svm",
+        "binary_classifier_params": {
+            "downweight_by_class": true
+        },
+        "pseudocount": 1,
+        "estimate_prior": "from_counts_conditional",
+        "default_prior_value": null,
+        "burn_in": 30000,
+        "num_default_bins": 10
+    },
+    "features": "log_tpm",
+    "description": ""
+}

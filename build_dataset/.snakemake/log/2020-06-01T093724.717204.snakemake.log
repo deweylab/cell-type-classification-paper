@@ -1,0 +1,19 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	apply_annotation
+	1
+
+[Mon Jun  1 09:37:24 2020]
+rule apply_annotation:
+    input: /ua/mnbernstein/projects/tbcp/cello_dev/metadata/cell_type_primary_cells_v1-4.annot_10.json
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/annotation.json
+    jobid: 0
+
+[Mon Jun  1 09:37:54 2020]
+Finished job 0.
+1 of 1 steps (100%) done
+Complete log: /ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/.snakemake/log/2020-06-01T093724.717204.snakemake.log

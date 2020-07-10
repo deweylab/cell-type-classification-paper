@@ -1,0 +1,40 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	build_aggregate_by_cluster_leiden_1_0_untampered_single_cell_primary_cells_with_data_cell_types_in_bulk
+	1	build_untampered_single_cell_primary_cells_with_data_cell_types_in_bulk
+	1	select_untampered_single_cell_primary_cells_with_data_cell_types_in_bulk
+	3
+
+[Tue Jun 16 10:13:17 2020]
+rule select_untampered_single_cell_primary_cells_with_data_cell_types_in_bulk:
+    input: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/experiment_sets/untampered_single_cell_primary_cells_with_data.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/datasets/untampered_single_cell_primary_cells_with_data/labels.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/experiment_sets/untampered_bulk_primary_cells_with_data.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/datasets/untampered_bulk_primary_cells_with_data/labels.json
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/experiment_sets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk.json
+    jobid: 1
+
+[Tue Jun 16 10:13:28 2020]
+Finished job 1.
+1 of 3 steps (33%) done
+
+[Tue Jun 16 10:13:28 2020]
+rule build_untampered_single_cell_primary_cells_with_data_cell_types_in_bulk:
+    input: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/experiment_sets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk.json
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/log_tpm.h5
+    jobid: 2
+
+[Tue Jun 16 10:34:44 2020]
+Finished job 2.
+2 of 3 steps (67%) done
+
+[Tue Jun 16 10:34:44 2020]
+rule build_aggregate_by_cluster_leiden_1_0_untampered_single_cell_primary_cells_with_data_cell_types_in_bulk:
+    input: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/experiment_sets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk.json, /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/log_tpm.h5
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/datasets/untampered_single_cell_primary_cells_with_data_cell_types_in_bulk/aggregate_by_cluster_leiden_1_0_log_tpm.h5
+    jobid: 0
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/.snakemake/log/2020-06-16T101317.626692.snakemake.log

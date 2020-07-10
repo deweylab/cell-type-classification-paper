@@ -1,0 +1,17 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	build_10x_pure_clusters_log_cpm
+	1
+
+[Sat Jun  6 08:22:57 2020]
+rule build_10x_pure_clusters_log_cpm:
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/datasets/zheng_10x_PBMC_2000_cells_per_type.pure_clusters/log_cpm.h5
+    jobid: 0
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/.snakemake/log/2020-06-06T082257.515910.snakemake.log

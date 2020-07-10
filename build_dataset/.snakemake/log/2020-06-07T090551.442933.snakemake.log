@@ -1,0 +1,18 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	build_10x_pseudo_bulk_log_cpm
+	1
+
+[Sun Jun  7 09:05:51 2020]
+rule build_10x_pseudo_bulk_log_cpm:
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/datasets/zheng_10x_PBMC.pseudo_bulk/log_cpm.h5
+    jobid: 0
+
+[Sun Jun  7 09:08:17 2020]
+Finished job 0.
+1 of 1 steps (100%) done
+Complete log: /ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/.snakemake/log/2020-06-07T090551.442933.snakemake.log

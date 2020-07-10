@@ -1,0 +1,18 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	apply_annotation
+	1
+
+[Sun May 31 10:48:22 2020]
+rule apply_annotation:
+    input: /ua/mnbernstein/projects/tbcp/cello_dev/metadata/cell_type_primary_cells_v1-4.annot_10.json
+    output: /tier2/deweylab/mnbernstein/phenotyping_environments/metasra_1-4.annot_10/annotation.json
+    jobid: 0
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+Complete log: /ua/mnbernstein/projects/tbcp/cello_dev/build_dataset/.snakemake/log/2020-05-31T104821.943749.snakemake.log

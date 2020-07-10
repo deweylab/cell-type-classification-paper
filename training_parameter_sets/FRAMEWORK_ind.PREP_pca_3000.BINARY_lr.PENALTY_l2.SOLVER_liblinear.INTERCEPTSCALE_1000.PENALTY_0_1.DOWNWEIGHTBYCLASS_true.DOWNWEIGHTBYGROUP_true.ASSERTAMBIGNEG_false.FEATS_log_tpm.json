@@ -1,0 +1,23 @@
+{
+    "algorithm": "ind_one_vs_rest",
+    "params": {
+        "assert_ambig_neg": false, 
+        "binary_classifier_algorithm": "logistic_regression",
+        "group_weighted": true,
+        "binary_classifier_params": {
+            "penalty": "l2",
+            "penalty_weight": 0.1,
+            "solver": "liblinear",
+            "intercept_scaling": 1000.0,
+            "downweight_by_class": true
+        }
+    },
+    "preprocessors": ["pca"],
+    "preprocessor_params": [
+        {
+            "n_components": 3000 
+        }
+    ],
+    "features": "log_tpm",
+    "description": ""
+}
